@@ -339,6 +339,34 @@ export interface Team {
    * Short display name used in event names (e.g., "Men's" for "2026 Men's World Championship")
    */
   displayName?: string | null;
+  /**
+   * Main heading for the hero section
+   */
+  heroHeading?: string | null;
+  /**
+   * Statistics or tagline displayed in the hero section
+   */
+  heroStatLine?: string | null;
+  /**
+   * Heading for the about section
+   */
+  aboutHeading?: string | null;
+  /**
+   * Main content for the about section
+   */
+  aboutContent?: string | null;
+  /**
+   * First image for the about section
+   */
+  aboutImage1?: (number | null) | Media;
+  /**
+   * Second image for the about section
+   */
+  aboutImage2?: (number | null) | Media;
+  /**
+   * Image for the Join Us call-to-action section
+   */
+  joinUsCTAImage?: (number | null) | Media;
   mediaGallery?:
     | {
         image: number | Media;
@@ -795,6 +823,13 @@ export interface TeamsSelect<T extends boolean = true> {
   slug?: T;
   shortName?: T;
   displayName?: T;
+  heroHeading?: T;
+  heroStatLine?: T;
+  aboutHeading?: T;
+  aboutContent?: T;
+  aboutImage1?: T;
+  aboutImage2?: T;
+  joinUsCTAImage?: T;
   mediaGallery?:
     | T
     | {
