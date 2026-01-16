@@ -11,7 +11,7 @@ export const Users: CollectionConfig = {
   },
   auth: true,
   access: {
-    admin: authenticated,
+    admin: ({ req: { user } }) => Boolean(user),
     create: authenticated,
     read: authenticated,
     update: authenticated,

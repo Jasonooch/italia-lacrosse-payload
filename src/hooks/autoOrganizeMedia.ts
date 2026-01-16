@@ -31,7 +31,7 @@ export const autoOrganizeMedia = (
       const mediaId = typeof doc[fieldName] === 'object' ? doc[fieldName]?.id : doc[fieldName]
 
       // Only proceed if there's a media ID
-      if (!mediaId || typeof mediaId !== 'string') {
+      if (!mediaId) {
         return doc
       }
 
@@ -47,7 +47,7 @@ export const autoOrganizeMedia = (
 
       // Find or create the folder in the payload-folders collection
       // Payload 3.x stores folders in a separate collection when folders: true is enabled
-      let folderId: string | null = null
+      let folderId: number | null = null
 
       try {
         // First, try to find existing folder
@@ -61,18 +61,16 @@ export const autoOrganizeMedia = (
         })
 
         if (existingFolders.docs.length > 0) {
-          folderId = existingFolders.docs[0].id as string
+          folderId = existingFolders.docs[0].id
         } else {
           // Create the folder if it doesn't exist
           const newFolder = await req.payload.create({
             collection: 'payload-folders',
             data: {
               name: folderName,
-              // The _folderCollection field specifies which collection this folder is for
-              _folderCollection: 'media',
             },
           })
-          folderId = newFolder.id as string
+          folderId = newFolder.id
           req.payload.logger.info(`Created folder "${folderName}" for media organization`)
         }
       } catch (folderError) {
@@ -92,8 +90,7 @@ export const autoOrganizeMedia = (
             collection: 'media',
             id: mediaId,
             data: {
-              // In Payload 3.x, the folder relationship is stored in _parentFolder
-              _parentFolder: folderId,
+              folder: folderId,
             },
           })
           req.payload.logger.info(
