@@ -7,9 +7,17 @@ import { fileURLToPath } from 'url'
 import { CloudflareContext, getCloudflareContext } from '@opennextjs/cloudflare'
 import { GetPlatformProxyOptions } from 'wrangler'
 import { r2Storage } from '@payloadcms/storage-r2'
+import { seoPlugin } from '@payloadcms/plugin-seo'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Posts } from './collections/Posts'
+import { Categories } from './collections/Categories'
+import { Teams } from './collections/Teams'
+import { Coaches } from './collections/Coaches'
+import { Countries } from './collections/Countries'
+import { Players } from './collections/Players'
+import { Events } from './collections/Events'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -30,7 +38,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media],
+  collections: [Posts, Categories, Events, Teams, Players, Coaches, Countries, Users, Media],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -41,6 +49,14 @@ export default buildConfig({
     r2Storage({
       bucket: cloudflare.env.R2,
       collections: { media: true },
+    }),
+    seoPlugin({
+      collections: ['posts'],
+      uploadsCollection: 'media',
+      generateTitle: ({ doc }) => `${doc?.title || ''} | Italia Lacrosse`,
+      generateDescription: ({ doc }) => doc?.meta?.description || '',
+      generateURL: ({ doc }) =>
+        `${process.env.FRONTEND_URL || 'https://italialacrosse.com'}/posts/${doc?.slug || ''}`,
     }),
   ],
 })
