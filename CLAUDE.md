@@ -107,6 +107,22 @@ await req.payload.update({
 ### 5. Slug Generation
 Use the centralized slug utility in `src/fields/slug.ts` for auto-generating URL-friendly slugs from source fields.
 
+### 6. Migration Best Practices (IMPORTANT)
+**NEVER reset/delete migrations once deployed to production.** The remote D1 database tracks which migrations have run. If you delete old migrations and create a fresh one:
+- The remote DB still has old tables
+- The new migration tries to create tables that already exist
+- Deploy fails
+
+**Always use incremental migrations:**
+```bash
+# After schema changes, create a NEW migration (don't delete old ones)
+pnpm payload migrate:create
+```
+
+If migrations get out of sync with remote DB, you must either:
+1. Add missing columns via `ALTER TABLE` commands
+2. Wipe the remote database (loses all data) and redeploy
+
 ## Configuration Files
 
 - `payload.config.ts` - Main CMS config, collections, plugins
