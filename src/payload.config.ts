@@ -15,7 +15,6 @@ import { Posts } from './collections/Posts'
 import { Categories } from './collections/Categories'
 import { Teams } from './collections/Teams'
 import { Coaches } from './collections/Coaches'
-import { Countries } from './collections/Countries'
 import { Players } from './collections/Players'
 import { Events } from './collections/Events'
 
@@ -38,7 +37,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Posts, Categories, Events, Teams, Players, Coaches, Countries, Users, Media],
+  collections: [Posts, Categories, Events, Teams, Players, Coaches, Users, Media],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
@@ -51,7 +50,7 @@ export default buildConfig({
       collections: { media: true },
     }),
     seoPlugin({
-      collections: ['posts'],
+      collections: [],
       uploadsCollection: 'media',
       generateTitle: ({ doc }) => `${doc?.title || ''} | Italia Lacrosse`,
       generateDescription: ({ doc }) => doc?.meta?.description || '',

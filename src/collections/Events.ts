@@ -84,8 +84,8 @@ export const Events: CollectionConfig = {
                     id: teamId,
                   })
 
-                  // Use displayName if available, otherwise fall back to name
-                  const teamDisplay = (team as any)?.displayName || team?.name || ''
+                  // Strip "Senior" from team name for event display
+                  const teamName = (team?.name || '').replace(' Senior', '')
 
                   // Convert eventType to display format
                   const eventTypeDisplay = data.eventType
@@ -94,7 +94,7 @@ export const Events: CollectionConfig = {
                     .join(' ')
 
                   // Generate name: "2026 Men's World Championship"
-                  return `${data.year} ${teamDisplay} ${eventTypeDisplay}`
+                  return `${data.year} ${teamName} ${eventTypeDisplay}`
                 } catch {
                   // If team fetch fails, return existing name or empty
                   return data?.name || ''

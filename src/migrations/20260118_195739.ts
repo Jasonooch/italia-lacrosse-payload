@@ -1,16 +1,6 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-d1-sqlite'
 
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
-  await db.run(sql`CREATE TABLE \`users_roles\` (
-  	\`order\` integer NOT NULL,
-  	\`parent_id\` integer NOT NULL,
-  	\`value\` text,
-  	\`id\` integer PRIMARY KEY NOT NULL,
-  	FOREIGN KEY (\`parent_id\`) REFERENCES \`users\`(\`id\`) ON UPDATE no action ON DELETE cascade
-  );
-  `)
-  await db.run(sql`CREATE INDEX \`users_roles_order_idx\` ON \`users_roles\` (\`order\`);`)
-  await db.run(sql`CREATE INDEX \`users_roles_parent_idx\` ON \`users_roles\` (\`parent_id\`);`)
   await db.run(sql`CREATE TABLE \`posts\` (
   	\`id\` integer PRIMARY KEY NOT NULL,
   	\`title\` text,
@@ -125,18 +115,44 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   `)
   await db.run(sql`CREATE INDEX \`categories_updated_at_idx\` ON \`categories\` (\`updated_at\`);`)
   await db.run(sql`CREATE INDEX \`categories_created_at_idx\` ON \`categories\` (\`created_at\`);`)
-  await db.run(sql`CREATE TABLE \`teams_media_gallery\` (
+  await db.run(sql`CREATE TABLE \`events_coaching_staff\` (
   	\`_order\` integer NOT NULL,
   	\`_parent_id\` integer NOT NULL,
   	\`id\` text PRIMARY KEY NOT NULL,
-  	\`image_id\` integer NOT NULL,
-  	FOREIGN KEY (\`image_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null,
-  	FOREIGN KEY (\`_parent_id\`) REFERENCES \`teams\`(\`id\`) ON UPDATE no action ON DELETE cascade
+  	\`coach_id\` integer NOT NULL,
+  	\`role\` text NOT NULL,
+  	FOREIGN KEY (\`coach_id\`) REFERENCES \`coaches\`(\`id\`) ON UPDATE no action ON DELETE set null,
+  	FOREIGN KEY (\`_parent_id\`) REFERENCES \`events\`(\`id\`) ON UPDATE no action ON DELETE cascade
   );
   `)
-  await db.run(sql`CREATE INDEX \`teams_media_gallery_order_idx\` ON \`teams_media_gallery\` (\`_order\`);`)
-  await db.run(sql`CREATE INDEX \`teams_media_gallery_parent_id_idx\` ON \`teams_media_gallery\` (\`_parent_id\`);`)
-  await db.run(sql`CREATE INDEX \`teams_media_gallery_image_idx\` ON \`teams_media_gallery\` (\`image_id\`);`)
+  await db.run(sql`CREATE INDEX \`events_coaching_staff_order_idx\` ON \`events_coaching_staff\` (\`_order\`);`)
+  await db.run(sql`CREATE INDEX \`events_coaching_staff_parent_id_idx\` ON \`events_coaching_staff\` (\`_parent_id\`);`)
+  await db.run(sql`CREATE INDEX \`events_coaching_staff_coach_idx\` ON \`events_coaching_staff\` (\`coach_id\`);`)
+  await db.run(sql`CREATE TABLE \`events\` (
+  	\`id\` integer PRIMARY KEY NOT NULL,
+  	\`year\` numeric DEFAULT 2026 NOT NULL,
+  	\`team_id\` integer NOT NULL,
+  	\`event_type\` text NOT NULL,
+  	\`name\` text NOT NULL,
+  	\`slug\` text,
+  	\`location\` text NOT NULL,
+  	\`venue\` text,
+  	\`start_date\` text NOT NULL,
+  	\`end_date\` text NOT NULL,
+  	\`logo_id\` integer,
+  	\`event_website\` text,
+  	\`description\` text,
+  	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	FOREIGN KEY (\`team_id\`) REFERENCES \`teams\`(\`id\`) ON UPDATE no action ON DELETE set null,
+  	FOREIGN KEY (\`logo_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null
+  );
+  `)
+  await db.run(sql`CREATE INDEX \`events_team_idx\` ON \`events\` (\`team_id\`);`)
+  await db.run(sql`CREATE UNIQUE INDEX \`events_slug_idx\` ON \`events\` (\`slug\`);`)
+  await db.run(sql`CREATE INDEX \`events_logo_idx\` ON \`events\` (\`logo_id\`);`)
+  await db.run(sql`CREATE INDEX \`events_updated_at_idx\` ON \`events\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX \`events_created_at_idx\` ON \`events\` (\`created_at\`);`)
   await db.run(sql`CREATE TABLE \`teams_coaching_staff\` (
   	\`_order\` integer NOT NULL,
   	\`_parent_id\` integer NOT NULL,
@@ -155,17 +171,42 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   	\`name\` text NOT NULL,
   	\`slug\` text,
   	\`short_name\` text,
-  	\`donation_image_id\` integer,
+  	\`hero_sub_heading\` text,
+  	\`about_heading\` text,
+  	\`about_content\` text,
+  	\`about_image_large_id\` integer,
+  	\`about_image_small_id\` integer,
+  	\`join_us_c_t_a_image_id\` integer,
   	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
   	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-  	FOREIGN KEY (\`donation_image_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null
+  	FOREIGN KEY (\`about_image_large_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null,
+  	FOREIGN KEY (\`about_image_small_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null,
+  	FOREIGN KEY (\`join_us_c_t_a_image_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null
   );
   `)
   await db.run(sql`CREATE UNIQUE INDEX \`teams_name_idx\` ON \`teams\` (\`name\`);`)
   await db.run(sql`CREATE UNIQUE INDEX \`teams_slug_idx\` ON \`teams\` (\`slug\`);`)
-  await db.run(sql`CREATE INDEX \`teams_donation_image_idx\` ON \`teams\` (\`donation_image_id\`);`)
+  await db.run(sql`CREATE INDEX \`teams_about_image_large_idx\` ON \`teams\` (\`about_image_large_id\`);`)
+  await db.run(sql`CREATE INDEX \`teams_about_image_small_idx\` ON \`teams\` (\`about_image_small_id\`);`)
+  await db.run(sql`CREATE INDEX \`teams_join_us_c_t_a_image_idx\` ON \`teams\` (\`join_us_c_t_a_image_id\`);`)
   await db.run(sql`CREATE INDEX \`teams_updated_at_idx\` ON \`teams\` (\`updated_at\`);`)
   await db.run(sql`CREATE INDEX \`teams_created_at_idx\` ON \`teams\` (\`created_at\`);`)
+  await db.run(sql`CREATE TABLE \`players\` (
+  	\`id\` integer PRIMARY KEY NOT NULL,
+  	\`first_name\` text NOT NULL,
+  	\`last_name\` text NOT NULL,
+  	\`full_name\` text,
+  	\`position\` text NOT NULL,
+  	\`photo_id\` integer,
+  	\`bio\` text,
+  	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	FOREIGN KEY (\`photo_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null
+  );
+  `)
+  await db.run(sql`CREATE INDEX \`players_photo_idx\` ON \`players\` (\`photo_id\`);`)
+  await db.run(sql`CREATE INDEX \`players_updated_at_idx\` ON \`players\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX \`players_created_at_idx\` ON \`players\` (\`created_at\`);`)
   await db.run(sql`CREATE TABLE \`coaches\` (
   	\`id\` integer PRIMARY KEY NOT NULL,
   	\`name\` text NOT NULL,
@@ -181,37 +222,132 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.run(sql`CREATE INDEX \`coaches_photo_idx\` ON \`coaches\` (\`photo_id\`);`)
   await db.run(sql`CREATE INDEX \`coaches_updated_at_idx\` ON \`coaches\` (\`updated_at\`);`)
   await db.run(sql`CREATE INDEX \`coaches_created_at_idx\` ON \`coaches\` (\`created_at\`);`)
-  await db.run(sql`CREATE TABLE \`countries\` (
+  await db.run(sql`CREATE TABLE \`users_roles\` (
+  	\`order\` integer NOT NULL,
+  	\`parent_id\` integer NOT NULL,
+  	\`value\` text,
   	\`id\` integer PRIMARY KEY NOT NULL,
-  	\`name\` text NOT NULL,
-  	\`slug\` text,
-  	\`short_name\` text NOT NULL,
-  	\`flag_id\` integer NOT NULL,
-  	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-  	FOREIGN KEY (\`flag_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null
+  	FOREIGN KEY (\`parent_id\`) REFERENCES \`users\`(\`id\`) ON UPDATE no action ON DELETE cascade
   );
   `)
-  await db.run(sql`CREATE UNIQUE INDEX \`countries_name_idx\` ON \`countries\` (\`name\`);`)
-  await db.run(sql`CREATE UNIQUE INDEX \`countries_slug_idx\` ON \`countries\` (\`slug\`);`)
-  await db.run(sql`CREATE INDEX \`countries_flag_idx\` ON \`countries\` (\`flag_id\`);`)
-  await db.run(sql`CREATE INDEX \`countries_updated_at_idx\` ON \`countries\` (\`updated_at\`);`)
-  await db.run(sql`CREATE INDEX \`countries_created_at_idx\` ON \`countries\` (\`created_at\`);`)
-  await db.run(sql`CREATE TABLE \`players\` (
-  	\`id\` integer PRIMARY KEY NOT NULL,
-  	\`name\` text NOT NULL,
-  	\`position\` text NOT NULL,
-  	\`photo_id\` integer,
-  	\`bio\` text,
-  	\`date_of_birth\` text,
-  	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-  	FOREIGN KEY (\`photo_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE set null
+  await db.run(sql`CREATE INDEX \`users_roles_order_idx\` ON \`users_roles\` (\`order\`);`)
+  await db.run(sql`CREATE INDEX \`users_roles_parent_idx\` ON \`users_roles\` (\`parent_id\`);`)
+  await db.run(sql`CREATE TABLE \`users_sessions\` (
+  	\`_order\` integer NOT NULL,
+  	\`_parent_id\` integer NOT NULL,
+  	\`id\` text PRIMARY KEY NOT NULL,
+  	\`created_at\` text,
+  	\`expires_at\` text NOT NULL,
+  	FOREIGN KEY (\`_parent_id\`) REFERENCES \`users\`(\`id\`) ON UPDATE no action ON DELETE cascade
   );
   `)
-  await db.run(sql`CREATE INDEX \`players_photo_idx\` ON \`players\` (\`photo_id\`);`)
-  await db.run(sql`CREATE INDEX \`players_updated_at_idx\` ON \`players\` (\`updated_at\`);`)
-  await db.run(sql`CREATE INDEX \`players_created_at_idx\` ON \`players\` (\`created_at\`);`)
+  await db.run(sql`CREATE INDEX \`users_sessions_order_idx\` ON \`users_sessions\` (\`_order\`);`)
+  await db.run(sql`CREATE INDEX \`users_sessions_parent_id_idx\` ON \`users_sessions\` (\`_parent_id\`);`)
+  await db.run(sql`CREATE TABLE \`users\` (
+  	\`id\` integer PRIMARY KEY NOT NULL,
+  	\`name\` text,
+  	\`first_name\` text NOT NULL,
+  	\`last_name\` text NOT NULL,
+  	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	\`email\` text NOT NULL,
+  	\`reset_password_token\` text,
+  	\`reset_password_expiration\` text,
+  	\`salt\` text,
+  	\`hash\` text,
+  	\`login_attempts\` numeric DEFAULT 0,
+  	\`lock_until\` text
+  );
+  `)
+  await db.run(sql`CREATE INDEX \`users_updated_at_idx\` ON \`users\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX \`users_created_at_idx\` ON \`users\` (\`created_at\`);`)
+  await db.run(sql`CREATE UNIQUE INDEX \`users_email_idx\` ON \`users\` (\`email\`);`)
+  await db.run(sql`CREATE TABLE \`media\` (
+  	\`id\` integer PRIMARY KEY NOT NULL,
+  	\`alt\` text NOT NULL,
+  	\`caption\` text,
+  	\`folder_id\` integer,
+  	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	\`url\` text,
+  	\`thumbnail_u_r_l\` text,
+  	\`filename\` text,
+  	\`mime_type\` text,
+  	\`filesize\` numeric,
+  	\`width\` numeric,
+  	\`height\` numeric,
+  	\`focal_x\` numeric,
+  	\`focal_y\` numeric,
+  	\`sizes_thumbnail_url\` text,
+  	\`sizes_thumbnail_width\` numeric,
+  	\`sizes_thumbnail_height\` numeric,
+  	\`sizes_thumbnail_mime_type\` text,
+  	\`sizes_thumbnail_filesize\` numeric,
+  	\`sizes_thumbnail_filename\` text,
+  	\`sizes_square_url\` text,
+  	\`sizes_square_width\` numeric,
+  	\`sizes_square_height\` numeric,
+  	\`sizes_square_mime_type\` text,
+  	\`sizes_square_filesize\` numeric,
+  	\`sizes_square_filename\` text,
+  	\`sizes_team_card_url\` text,
+  	\`sizes_team_card_width\` numeric,
+  	\`sizes_team_card_height\` numeric,
+  	\`sizes_team_card_mime_type\` text,
+  	\`sizes_team_card_filesize\` numeric,
+  	\`sizes_team_card_filename\` text,
+  	\`sizes_small_url\` text,
+  	\`sizes_small_width\` numeric,
+  	\`sizes_small_height\` numeric,
+  	\`sizes_small_mime_type\` text,
+  	\`sizes_small_filesize\` numeric,
+  	\`sizes_small_filename\` text,
+  	\`sizes_medium_url\` text,
+  	\`sizes_medium_width\` numeric,
+  	\`sizes_medium_height\` numeric,
+  	\`sizes_medium_mime_type\` text,
+  	\`sizes_medium_filesize\` numeric,
+  	\`sizes_medium_filename\` text,
+  	\`sizes_post_hero_url\` text,
+  	\`sizes_post_hero_width\` numeric,
+  	\`sizes_post_hero_height\` numeric,
+  	\`sizes_post_hero_mime_type\` text,
+  	\`sizes_post_hero_filesize\` numeric,
+  	\`sizes_post_hero_filename\` text,
+  	\`sizes_large_url\` text,
+  	\`sizes_large_width\` numeric,
+  	\`sizes_large_height\` numeric,
+  	\`sizes_large_mime_type\` text,
+  	\`sizes_large_filesize\` numeric,
+  	\`sizes_large_filename\` text,
+  	\`sizes_xlarge_url\` text,
+  	\`sizes_xlarge_width\` numeric,
+  	\`sizes_xlarge_height\` numeric,
+  	\`sizes_xlarge_mime_type\` text,
+  	\`sizes_xlarge_filesize\` numeric,
+  	\`sizes_xlarge_filename\` text,
+  	\`sizes_og_url\` text,
+  	\`sizes_og_width\` numeric,
+  	\`sizes_og_height\` numeric,
+  	\`sizes_og_mime_type\` text,
+  	\`sizes_og_filesize\` numeric,
+  	\`sizes_og_filename\` text,
+  	FOREIGN KEY (\`folder_id\`) REFERENCES \`payload_folders\`(\`id\`) ON UPDATE no action ON DELETE set null
+  );
+  `)
+  await db.run(sql`CREATE INDEX \`media_folder_idx\` ON \`media\` (\`folder_id\`);`)
+  await db.run(sql`CREATE INDEX \`media_updated_at_idx\` ON \`media\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX \`media_created_at_idx\` ON \`media\` (\`created_at\`);`)
+  await db.run(sql`CREATE UNIQUE INDEX \`media_filename_idx\` ON \`media\` (\`filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_thumbnail_sizes_thumbnail_filename_idx\` ON \`media\` (\`sizes_thumbnail_filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_square_sizes_square_filename_idx\` ON \`media\` (\`sizes_square_filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_team_card_sizes_team_card_filename_idx\` ON \`media\` (\`sizes_team_card_filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_small_sizes_small_filename_idx\` ON \`media\` (\`sizes_small_filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_medium_sizes_medium_filename_idx\` ON \`media\` (\`sizes_medium_filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_post_hero_sizes_post_hero_filename_idx\` ON \`media\` (\`sizes_post_hero_filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_large_sizes_large_filename_idx\` ON \`media\` (\`sizes_large_filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_xlarge_sizes_xlarge_filename_idx\` ON \`media\` (\`sizes_xlarge_filename\`);`)
+  await db.run(sql`CREATE INDEX \`media_sizes_og_sizes_og_filename_idx\` ON \`media\` (\`sizes_og_filename\`);`)
   await db.run(sql`CREATE TABLE \`payload_kv\` (
   	\`id\` integer PRIMARY KEY NOT NULL,
   	\`key\` text NOT NULL,
@@ -283,154 +419,115 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.run(sql`CREATE INDEX \`payload_folders_folder_idx\` ON \`payload_folders\` (\`folder_id\`);`)
   await db.run(sql`CREATE INDEX \`payload_folders_updated_at_idx\` ON \`payload_folders\` (\`updated_at\`);`)
   await db.run(sql`CREATE INDEX \`payload_folders_created_at_idx\` ON \`payload_folders\` (\`created_at\`);`)
-  await db.run(sql`ALTER TABLE \`users\` ADD \`name\` text;`)
-  await db.run(sql`ALTER TABLE \`users\` ADD \`first_name\` text NOT NULL DEFAULT '';`)
-  await db.run(sql`ALTER TABLE \`users\` ADD \`last_name\` text NOT NULL DEFAULT '';`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`caption\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`folder_id\` integer REFERENCES payload_folders(id);`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`focal_x\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`focal_y\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_thumbnail_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_thumbnail_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_thumbnail_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_thumbnail_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_thumbnail_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_thumbnail_filename\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_square_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_square_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_square_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_square_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_square_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_square_filename\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_team_card_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_team_card_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_team_card_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_team_card_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_team_card_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_team_card_filename\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_small_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_small_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_small_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_small_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_small_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_small_filename\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_medium_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_medium_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_medium_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_medium_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_medium_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_medium_filename\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_post_hero_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_post_hero_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_post_hero_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_post_hero_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_post_hero_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_post_hero_filename\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_large_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_large_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_large_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_large_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_large_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_large_filename\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_xlarge_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_xlarge_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_xlarge_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_xlarge_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_xlarge_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_xlarge_filename\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_og_url\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_og_width\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_og_height\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_og_mime_type\` text;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_og_filesize\` numeric;`)
-  await db.run(sql`ALTER TABLE \`media\` ADD \`sizes_og_filename\` text;`)
-  await db.run(sql`CREATE INDEX \`media_folder_idx\` ON \`media\` (\`folder_id\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_thumbnail_sizes_thumbnail_filename_idx\` ON \`media\` (\`sizes_thumbnail_filename\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_square_sizes_square_filename_idx\` ON \`media\` (\`sizes_square_filename\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_team_card_sizes_team_card_filename_idx\` ON \`media\` (\`sizes_team_card_filename\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_small_sizes_small_filename_idx\` ON \`media\` (\`sizes_small_filename\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_medium_sizes_medium_filename_idx\` ON \`media\` (\`sizes_medium_filename\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_post_hero_sizes_post_hero_filename_idx\` ON \`media\` (\`sizes_post_hero_filename\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_large_sizes_large_filename_idx\` ON \`media\` (\`sizes_large_filename\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_xlarge_sizes_xlarge_filename_idx\` ON \`media\` (\`sizes_xlarge_filename\`);`)
-  await db.run(sql`CREATE INDEX \`media_sizes_og_sizes_og_filename_idx\` ON \`media\` (\`sizes_og_filename\`);`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`posts_id\` integer REFERENCES posts(id);`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`categories_id\` integer REFERENCES categories(id);`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`teams_id\` integer REFERENCES teams(id);`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`coaches_id\` integer REFERENCES coaches(id);`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`countries_id\` integer REFERENCES countries(id);`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`players_id\` integer REFERENCES players(id);`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`payload_folders_id\` integer REFERENCES payload_folders(id);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_posts_id_idx\` ON \`payload_locked_documents_rels\` (\`posts_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_categories_id_idx\` ON \`payload_locked_documents_rels\` (\`categories_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_teams_id_idx\` ON \`payload_locked_documents_rels\` (\`teams_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_coaches_id_idx\` ON \`payload_locked_documents_rels\` (\`coaches_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_countries_id_idx\` ON \`payload_locked_documents_rels\` (\`countries_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_players_id_idx\` ON \`payload_locked_documents_rels\` (\`players_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_payload_folders_id_idx\` ON \`payload_locked_documents_rels\` (\`payload_folders_id\`);`)
-}
-
-export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
-  await db.run(sql`DROP TABLE \`users_roles\`;`)
-  await db.run(sql`DROP TABLE \`posts\`;`)
-  await db.run(sql`DROP TABLE \`posts_rels\`;`)
-  await db.run(sql`DROP TABLE \`_posts_v\`;`)
-  await db.run(sql`DROP TABLE \`_posts_v_rels\`;`)
-  await db.run(sql`DROP TABLE \`categories\`;`)
-  await db.run(sql`DROP TABLE \`teams_media_gallery\`;`)
-  await db.run(sql`DROP TABLE \`teams_coaching_staff\`;`)
-  await db.run(sql`DROP TABLE \`teams\`;`)
-  await db.run(sql`DROP TABLE \`coaches\`;`)
-  await db.run(sql`DROP TABLE \`countries\`;`)
-  await db.run(sql`DROP TABLE \`players\`;`)
-  await db.run(sql`DROP TABLE \`payload_kv\`;`)
-  await db.run(sql`DROP TABLE \`payload_jobs_log\`;`)
-  await db.run(sql`DROP TABLE \`payload_jobs\`;`)
-  await db.run(sql`DROP TABLE \`payload_folders_folder_type\`;`)
-  await db.run(sql`DROP TABLE \`payload_folders\`;`)
-  await db.run(sql`PRAGMA foreign_keys=OFF;`)
-  await db.run(sql`CREATE TABLE \`__new_media\` (
+  await db.run(sql`CREATE TABLE \`payload_locked_documents\` (
   	\`id\` integer PRIMARY KEY NOT NULL,
-  	\`alt\` text NOT NULL,
+  	\`global_slug\` text,
   	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-  	\`url\` text,
-  	\`thumbnail_u_r_l\` text,
-  	\`filename\` text,
-  	\`mime_type\` text,
-  	\`filesize\` numeric,
-  	\`width\` numeric,
-  	\`height\` numeric
+  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
   );
   `)
-  await db.run(sql`INSERT INTO \`__new_media\`("id", "alt", "updated_at", "created_at", "url", "thumbnail_u_r_l", "filename", "mime_type", "filesize", "width", "height") SELECT "id", "alt", "updated_at", "created_at", "url", "thumbnail_u_r_l", "filename", "mime_type", "filesize", "width", "height" FROM \`media\`;`)
-  await db.run(sql`DROP TABLE \`media\`;`)
-  await db.run(sql`ALTER TABLE \`__new_media\` RENAME TO \`media\`;`)
-  await db.run(sql`PRAGMA foreign_keys=ON;`)
-  await db.run(sql`CREATE INDEX \`media_updated_at_idx\` ON \`media\` (\`updated_at\`);`)
-  await db.run(sql`CREATE INDEX \`media_created_at_idx\` ON \`media\` (\`created_at\`);`)
-  await db.run(sql`CREATE UNIQUE INDEX \`media_filename_idx\` ON \`media\` (\`filename\`);`)
-  await db.run(sql`CREATE TABLE \`__new_payload_locked_documents_rels\` (
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_global_slug_idx\` ON \`payload_locked_documents\` (\`global_slug\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_updated_at_idx\` ON \`payload_locked_documents\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_created_at_idx\` ON \`payload_locked_documents\` (\`created_at\`);`)
+  await db.run(sql`CREATE TABLE \`payload_locked_documents_rels\` (
+  	\`id\` integer PRIMARY KEY NOT NULL,
+  	\`order\` integer,
+  	\`parent_id\` integer NOT NULL,
+  	\`path\` text NOT NULL,
+  	\`posts_id\` integer,
+  	\`categories_id\` integer,
+  	\`events_id\` integer,
+  	\`teams_id\` integer,
+  	\`players_id\` integer,
+  	\`coaches_id\` integer,
+  	\`users_id\` integer,
+  	\`media_id\` integer,
+  	\`payload_folders_id\` integer,
+  	FOREIGN KEY (\`parent_id\`) REFERENCES \`payload_locked_documents\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`posts_id\`) REFERENCES \`posts\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`categories_id\`) REFERENCES \`categories\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`events_id\`) REFERENCES \`events\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`teams_id\`) REFERENCES \`teams\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`players_id\`) REFERENCES \`players\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`coaches_id\`) REFERENCES \`coaches\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`users_id\`) REFERENCES \`users\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`media_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`payload_folders_id\`) REFERENCES \`payload_folders\`(\`id\`) ON UPDATE no action ON DELETE cascade
+  );
+  `)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_order_idx\` ON \`payload_locked_documents_rels\` (\`order\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_parent_idx\` ON \`payload_locked_documents_rels\` (\`parent_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_path_idx\` ON \`payload_locked_documents_rels\` (\`path\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_posts_id_idx\` ON \`payload_locked_documents_rels\` (\`posts_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_categories_id_idx\` ON \`payload_locked_documents_rels\` (\`categories_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_events_id_idx\` ON \`payload_locked_documents_rels\` (\`events_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_teams_id_idx\` ON \`payload_locked_documents_rels\` (\`teams_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_players_id_idx\` ON \`payload_locked_documents_rels\` (\`players_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_coaches_id_idx\` ON \`payload_locked_documents_rels\` (\`coaches_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_users_id_idx\` ON \`payload_locked_documents_rels\` (\`users_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_media_id_idx\` ON \`payload_locked_documents_rels\` (\`media_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_payload_folders_id_idx\` ON \`payload_locked_documents_rels\` (\`payload_folders_id\`);`)
+  await db.run(sql`CREATE TABLE \`payload_preferences\` (
+  	\`id\` integer PRIMARY KEY NOT NULL,
+  	\`key\` text,
+  	\`value\` text,
+  	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
+  );
+  `)
+  await db.run(sql`CREATE INDEX \`payload_preferences_key_idx\` ON \`payload_preferences\` (\`key\`);`)
+  await db.run(sql`CREATE INDEX \`payload_preferences_updated_at_idx\` ON \`payload_preferences\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX \`payload_preferences_created_at_idx\` ON \`payload_preferences\` (\`created_at\`);`)
+  await db.run(sql`CREATE TABLE \`payload_preferences_rels\` (
   	\`id\` integer PRIMARY KEY NOT NULL,
   	\`order\` integer,
   	\`parent_id\` integer NOT NULL,
   	\`path\` text NOT NULL,
   	\`users_id\` integer,
-  	\`media_id\` integer,
-  	FOREIGN KEY (\`parent_id\`) REFERENCES \`payload_locked_documents\`(\`id\`) ON UPDATE no action ON DELETE cascade,
-  	FOREIGN KEY (\`users_id\`) REFERENCES \`users\`(\`id\`) ON UPDATE no action ON DELETE cascade,
-  	FOREIGN KEY (\`media_id\`) REFERENCES \`media\`(\`id\`) ON UPDATE no action ON DELETE cascade
+  	FOREIGN KEY (\`parent_id\`) REFERENCES \`payload_preferences\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+  	FOREIGN KEY (\`users_id\`) REFERENCES \`users\`(\`id\`) ON UPDATE no action ON DELETE cascade
   );
   `)
-  await db.run(sql`INSERT INTO \`__new_payload_locked_documents_rels\`("id", "order", "parent_id", "path", "users_id", "media_id") SELECT "id", "order", "parent_id", "path", "users_id", "media_id" FROM \`payload_locked_documents_rels\`;`)
+  await db.run(sql`CREATE INDEX \`payload_preferences_rels_order_idx\` ON \`payload_preferences_rels\` (\`order\`);`)
+  await db.run(sql`CREATE INDEX \`payload_preferences_rels_parent_idx\` ON \`payload_preferences_rels\` (\`parent_id\`);`)
+  await db.run(sql`CREATE INDEX \`payload_preferences_rels_path_idx\` ON \`payload_preferences_rels\` (\`path\`);`)
+  await db.run(sql`CREATE INDEX \`payload_preferences_rels_users_id_idx\` ON \`payload_preferences_rels\` (\`users_id\`);`)
+  await db.run(sql`CREATE TABLE \`payload_migrations\` (
+  	\`id\` integer PRIMARY KEY NOT NULL,
+  	\`name\` text,
+  	\`batch\` numeric,
+  	\`updated_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+  	\`created_at\` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
+  );
+  `)
+  await db.run(sql`CREATE INDEX \`payload_migrations_updated_at_idx\` ON \`payload_migrations\` (\`updated_at\`);`)
+  await db.run(sql`CREATE INDEX \`payload_migrations_created_at_idx\` ON \`payload_migrations\` (\`created_at\`);`)
+}
+
+export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+  await db.run(sql`DROP TABLE \`posts\`;`)
+  await db.run(sql`DROP TABLE \`posts_rels\`;`)
+  await db.run(sql`DROP TABLE \`_posts_v\`;`)
+  await db.run(sql`DROP TABLE \`_posts_v_rels\`;`)
+  await db.run(sql`DROP TABLE \`categories\`;`)
+  await db.run(sql`DROP TABLE \`events_coaching_staff\`;`)
+  await db.run(sql`DROP TABLE \`events\`;`)
+  await db.run(sql`DROP TABLE \`teams_coaching_staff\`;`)
+  await db.run(sql`DROP TABLE \`teams\`;`)
+  await db.run(sql`DROP TABLE \`players\`;`)
+  await db.run(sql`DROP TABLE \`coaches\`;`)
+  await db.run(sql`DROP TABLE \`users_roles\`;`)
+  await db.run(sql`DROP TABLE \`users_sessions\`;`)
+  await db.run(sql`DROP TABLE \`users\`;`)
+  await db.run(sql`DROP TABLE \`media\`;`)
+  await db.run(sql`DROP TABLE \`payload_kv\`;`)
+  await db.run(sql`DROP TABLE \`payload_jobs_log\`;`)
+  await db.run(sql`DROP TABLE \`payload_jobs\`;`)
+  await db.run(sql`DROP TABLE \`payload_folders_folder_type\`;`)
+  await db.run(sql`DROP TABLE \`payload_folders\`;`)
+  await db.run(sql`DROP TABLE \`payload_locked_documents\`;`)
   await db.run(sql`DROP TABLE \`payload_locked_documents_rels\`;`)
-  await db.run(sql`ALTER TABLE \`__new_payload_locked_documents_rels\` RENAME TO \`payload_locked_documents_rels\`;`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_order_idx\` ON \`payload_locked_documents_rels\` (\`order\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_parent_idx\` ON \`payload_locked_documents_rels\` (\`parent_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_path_idx\` ON \`payload_locked_documents_rels\` (\`path\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_users_id_idx\` ON \`payload_locked_documents_rels\` (\`users_id\`);`)
-  await db.run(sql`CREATE INDEX \`payload_locked_documents_rels_media_id_idx\` ON \`payload_locked_documents_rels\` (\`media_id\`);`)
-  await db.run(sql`ALTER TABLE \`users\` DROP COLUMN \`name\`;`)
-  await db.run(sql`ALTER TABLE \`users\` DROP COLUMN \`first_name\`;`)
-  await db.run(sql`ALTER TABLE \`users\` DROP COLUMN \`last_name\`;`)
+  await db.run(sql`DROP TABLE \`payload_preferences\`;`)
+  await db.run(sql`DROP TABLE \`payload_preferences_rels\`;`)
+  await db.run(sql`DROP TABLE \`payload_migrations\`;`)
 }

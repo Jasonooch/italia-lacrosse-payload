@@ -73,7 +73,6 @@ export interface Config {
     teams: Team;
     players: Player;
     coaches: Coach;
-    countries: Country;
     users: User;
     media: Media;
     'payload-kv': PayloadKv;
@@ -95,7 +94,6 @@ export interface Config {
     teams: TeamsSelect<false> | TeamsSelect<true>;
     players: PlayersSelect<false> | PlayersSelect<true>;
     coaches: CoachesSelect<false> | CoachesSelect<true>;
-    countries: CountriesSelect<false> | CountriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -175,11 +173,11 @@ export interface Post {
   categories?: (number | Category)[] | null;
   meta?: {
     title?: string | null;
-    description?: string | null;
     /**
      * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
      */
     image?: (number | null) | Media;
+    description?: string | null;
   };
   publishedAt?: string | null;
   authors?: (number | User)[] | null;
@@ -336,17 +334,9 @@ export interface Team {
    */
   shortName?: string | null;
   /**
-   * Short display name used in event names (e.g., "Men's" for "2026 Men's World Championship")
+   * Tagline displayed in the hero section
    */
-  displayName?: string | null;
-  /**
-   * Main heading for the hero section
-   */
-  heroHeading?: string | null;
-  /**
-   * Statistics or tagline displayed in the hero section
-   */
-  heroStatLine?: string | null;
+  heroSubHeading?: string | null;
   /**
    * Heading for the about section
    */
@@ -354,29 +344,33 @@ export interface Team {
   /**
    * Main content for the about section
    */
-  aboutContent?: string | null;
+  aboutContent?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
    * First image for the about section
    */
-  aboutImage1?: (number | null) | Media;
+  aboutImageLarge?: (number | null) | Media;
   /**
    * Second image for the about section
    */
-  aboutImage2?: (number | null) | Media;
+  aboutImageSmall?: (number | null) | Media;
   /**
    * Image for the Join Us call-to-action section
    */
   joinUsCTAImage?: (number | null) | Media;
-  mediaGallery?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Image used for donation campaigns
-   */
-  donationImage?: (number | null) | Media;
   /**
    * Coaches assigned to this team with their roles
    */
@@ -538,25 +532,6 @@ export interface Player {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "countries".
- */
-export interface Country {
-  id: number;
-  name: string;
-  slug?: string | null;
-  /**
-   * Country abbreviation (e.g., "USA", "GER", "CAN")
-   */
-  shortName: string;
-  /**
-   * Country flag image
-   */
-  flag: number | Media;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -696,10 +671,6 @@ export interface PayloadLockedDocument {
         value: number | Coach;
       } | null)
     | ({
-        relationTo: 'countries';
-        value: number | Country;
-      } | null)
-    | ({
         relationTo: 'users';
         value: number | User;
       } | null)
@@ -768,8 +739,8 @@ export interface PostsSelect<T extends boolean = true> {
     | T
     | {
         title?: T;
-        description?: T;
         image?: T;
+        description?: T;
       };
   publishedAt?: T;
   authors?: T;
@@ -822,21 +793,12 @@ export interface TeamsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   shortName?: T;
-  displayName?: T;
-  heroHeading?: T;
-  heroStatLine?: T;
+  heroSubHeading?: T;
   aboutHeading?: T;
   aboutContent?: T;
-  aboutImage1?: T;
-  aboutImage2?: T;
+  aboutImageLarge?: T;
+  aboutImageSmall?: T;
   joinUsCTAImage?: T;
-  mediaGallery?:
-    | T
-    | {
-        image?: T;
-        id?: T;
-      };
-  donationImage?: T;
   coachingStaff?:
     | T
     | {
@@ -870,18 +832,6 @@ export interface CoachesSelect<T extends boolean = true> {
   slug?: T;
   bio?: T;
   photo?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "countries_select".
- */
-export interface CountriesSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  shortName?: T;
-  flag?: T;
   updatedAt?: T;
   createdAt?: T;
 }

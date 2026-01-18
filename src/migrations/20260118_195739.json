@@ -1127,93 +1127,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "teams_media_gallery": {
-      "name": "teams_media_gallery",
-      "columns": {
-        "_order": {
-          "name": "_order",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "_parent_id": {
-          "name": "_parent_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "image_id": {
-          "name": "image_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {
-        "teams_media_gallery_order_idx": {
-          "name": "teams_media_gallery_order_idx",
-          "columns": [
-            "_order"
-          ],
-          "isUnique": false
-        },
-        "teams_media_gallery_parent_id_idx": {
-          "name": "teams_media_gallery_parent_id_idx",
-          "columns": [
-            "_parent_id"
-          ],
-          "isUnique": false
-        },
-        "teams_media_gallery_image_idx": {
-          "name": "teams_media_gallery_image_idx",
-          "columns": [
-            "image_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "teams_media_gallery_image_id_media_id_fk": {
-          "name": "teams_media_gallery_image_id_media_id_fk",
-          "tableFrom": "teams_media_gallery",
-          "tableTo": "media",
-          "columnsFrom": [
-            "image_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "teams_media_gallery_parent_id_fk": {
-          "name": "teams_media_gallery_parent_id_fk",
-          "tableFrom": "teams_media_gallery",
-          "tableTo": "teams",
-          "columnsFrom": [
-            "_parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "teams_coaching_staff": {
       "name": "teams_coaching_staff",
       "columns": {
@@ -1339,22 +1252,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "display_name": {
-          "name": "display_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "hero_heading": {
-          "name": "hero_heading",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "hero_stat_line": {
-          "name": "hero_stat_line",
+        "hero_sub_heading": {
+          "name": "hero_sub_heading",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -1374,15 +1273,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "about_image1_id": {
-          "name": "about_image1_id",
+        "about_image_large_id": {
+          "name": "about_image_large_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "about_image2_id": {
-          "name": "about_image2_id",
+        "about_image_small_id": {
+          "name": "about_image_small_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -1390,13 +1289,6 @@
         },
         "join_us_c_t_a_image_id": {
           "name": "join_us_c_t_a_image_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "donation_image_id": {
-          "name": "donation_image_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -1434,17 +1326,17 @@
           ],
           "isUnique": true
         },
-        "teams_about_image1_idx": {
-          "name": "teams_about_image1_idx",
+        "teams_about_image_large_idx": {
+          "name": "teams_about_image_large_idx",
           "columns": [
-            "about_image1_id"
+            "about_image_large_id"
           ],
           "isUnique": false
         },
-        "teams_about_image2_idx": {
-          "name": "teams_about_image2_idx",
+        "teams_about_image_small_idx": {
+          "name": "teams_about_image_small_idx",
           "columns": [
-            "about_image2_id"
+            "about_image_small_id"
           ],
           "isUnique": false
         },
@@ -1452,13 +1344,6 @@
           "name": "teams_join_us_c_t_a_image_idx",
           "columns": [
             "join_us_c_t_a_image_id"
-          ],
-          "isUnique": false
-        },
-        "teams_donation_image_idx": {
-          "name": "teams_donation_image_idx",
-          "columns": [
-            "donation_image_id"
           ],
           "isUnique": false
         },
@@ -1478,12 +1363,12 @@
         }
       },
       "foreignKeys": {
-        "teams_about_image1_id_media_id_fk": {
-          "name": "teams_about_image1_id_media_id_fk",
+        "teams_about_image_large_id_media_id_fk": {
+          "name": "teams_about_image_large_id_media_id_fk",
           "tableFrom": "teams",
           "tableTo": "media",
           "columnsFrom": [
-            "about_image1_id"
+            "about_image_large_id"
           ],
           "columnsTo": [
             "id"
@@ -1491,12 +1376,12 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "teams_about_image2_id_media_id_fk": {
-          "name": "teams_about_image2_id_media_id_fk",
+        "teams_about_image_small_id_media_id_fk": {
+          "name": "teams_about_image_small_id_media_id_fk",
           "tableFrom": "teams",
           "tableTo": "media",
           "columnsFrom": [
-            "about_image2_id"
+            "about_image_small_id"
           ],
           "columnsTo": [
             "id"
@@ -1510,19 +1395,6 @@
           "tableTo": "media",
           "columnsFrom": [
             "join_us_c_t_a_image_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "teams_donation_image_id_media_id_fk": {
-          "name": "teams_donation_image_id_media_id_fk",
-          "tableFrom": "teams",
-          "tableTo": "media",
-          "columnsFrom": [
-            "donation_image_id"
           ],
           "columnsTo": [
             "id"
@@ -1738,117 +1610,6 @@
           "tableTo": "media",
           "columnsFrom": [
             "photo_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "countries": {
-      "name": "countries",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "slug": {
-          "name": "slug",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "short_name": {
-          "name": "short_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "flag_id": {
-          "name": "flag_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
-        }
-      },
-      "indexes": {
-        "countries_name_idx": {
-          "name": "countries_name_idx",
-          "columns": [
-            "name"
-          ],
-          "isUnique": true
-        },
-        "countries_slug_idx": {
-          "name": "countries_slug_idx",
-          "columns": [
-            "slug"
-          ],
-          "isUnique": true
-        },
-        "countries_flag_idx": {
-          "name": "countries_flag_idx",
-          "columns": [
-            "flag_id"
-          ],
-          "isUnique": false
-        },
-        "countries_updated_at_idx": {
-          "name": "countries_updated_at_idx",
-          "columns": [
-            "updated_at"
-          ],
-          "isUnique": false
-        },
-        "countries_created_at_idx": {
-          "name": "countries_created_at_idx",
-          "columns": [
-            "created_at"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "countries_flag_id_media_id_fk": {
-          "name": "countries_flag_id_media_id_fk",
-          "tableFrom": "countries",
-          "tableTo": "media",
-          "columnsFrom": [
-            "flag_id"
           ],
           "columnsTo": [
             "id"
@@ -3340,13 +3101,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "countries_id": {
-          "name": "countries_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "users_id": {
           "name": "users_id",
           "type": "integer",
@@ -3430,13 +3184,6 @@
           "name": "payload_locked_documents_rels_coaches_id_idx",
           "columns": [
             "coaches_id"
-          ],
-          "isUnique": false
-        },
-        "payload_locked_documents_rels_countries_id_idx": {
-          "name": "payload_locked_documents_rels_countries_id_idx",
-          "columns": [
-            "countries_id"
           ],
           "isUnique": false
         },
@@ -3547,19 +3294,6 @@
           "tableTo": "coaches",
           "columnsFrom": [
             "coaches_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "payload_locked_documents_rels_countries_fk": {
-          "name": "payload_locked_documents_rels_countries_fk",
-          "tableFrom": "payload_locked_documents_rels",
-          "tableTo": "countries",
-          "columnsFrom": [
-            "countries_id"
           ],
           "columnsTo": [
             "id"
@@ -3853,6 +3587,6 @@
   "internal": {
     "indexes": {}
   },
-  "id": "f45641fb-a56f-4792-8b0f-2ef4390f5e91",
+  "id": "35eba0be-f5dc-4399-96d2-580bb90bcc9f",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }

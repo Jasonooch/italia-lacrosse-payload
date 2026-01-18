@@ -33,13 +33,6 @@ export const Teams: CollectionConfig = {
         description: 'Abbreviated team name (e.g., "ITA M", "ITA W")',
       },
     },
-    {
-      name: 'displayName',
-      type: 'text',
-      admin: {
-        description: 'Short display name used in event names (e.g., "Men\'s" for "2026 Men\'s World Championship")',
-      },
-    },
     // Page Builder Sections
     {
       type: 'tabs',
@@ -48,19 +41,11 @@ export const Teams: CollectionConfig = {
           label: 'Hero Section',
           fields: [
             {
-              name: 'heroHeading',
+              name: 'heroSubHeading',
               type: 'text',
-              label: 'Heading',
+              label: 'Sub-heading',
               admin: {
-                description: 'Main heading for the hero section',
-              },
-            },
-            {
-              name: 'heroStatLine',
-              type: 'text',
-              label: 'Stat Line',
-              admin: {
-                description: 'Statistics or tagline displayed in the hero section',
+                description: 'Tagline displayed in the hero section',
               },
             },
           ],
@@ -78,7 +63,7 @@ export const Teams: CollectionConfig = {
             },
             {
               name: 'aboutContent',
-              type: 'textarea',
+              type: 'richText',
               label: 'Content',
               admin: {
                 description: 'Main content for the about section',
@@ -90,19 +75,19 @@ export const Teams: CollectionConfig = {
           label: 'Images',
           fields: [
             {
-              name: 'aboutImage1',
+              name: 'aboutImageLarge',
               type: 'upload',
               relationTo: 'media',
-              label: 'About Section Image 1',
+              label: 'About Section Large',
               admin: {
                 description: 'First image for the about section',
               },
             },
             {
-              name: 'aboutImage2',
+              name: 'aboutImageSmall',
               type: 'upload',
               relationTo: 'media',
-              label: 'About Section Image 2',
+              label: 'About Section Image Small',
               admin: {
                 description: 'Second image for the about section',
               },
@@ -121,27 +106,6 @@ export const Teams: CollectionConfig = {
         {
           label: 'Team Data',
           fields: [
-            {
-              name: 'mediaGallery',
-              type: 'array',
-              maxRows: 5,
-              fields: [
-                {
-                  name: 'image',
-                  type: 'upload',
-                  relationTo: 'media',
-                  required: true,
-                },
-              ],
-            },
-            {
-              name: 'donationImage',
-              type: 'upload',
-              relationTo: 'media',
-              admin: {
-                description: 'Image used for donation campaigns',
-              },
-            },
             {
               name: 'coachingStaff',
               type: 'array',
