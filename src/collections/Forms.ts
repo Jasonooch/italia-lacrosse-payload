@@ -63,6 +63,38 @@ export const Forms: CollectionConfig = {
       },
     },
     {
+      name: 'createContact',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Automatically create contact records from form submissions',
+      },
+    },
+    {
+      name: 'contactType',
+      type: 'select',
+      defaultValue: 'player',
+      options: [
+        { label: 'Player', value: 'player' },
+        { label: 'Donor', value: 'donor' },
+        { label: 'Coach', value: 'coach' },
+      ],
+      admin: {
+        condition: (data) => data.createContact === true,
+        description: 'Default contact type for submissions from this form',
+      },
+    },
+    {
+      name: 'contactFieldMapping',
+      type: 'json',
+      admin: {
+        condition: (data) => data.createContact === true,
+        description:
+          'Map form fields to contact fields. Example: {"fullName": "firstName", "email": "email", "phoneNumber": "phone"}',
+      },
+    },
+    {
       name: 'createdBy',
       type: 'relationship',
       relationTo: 'users',

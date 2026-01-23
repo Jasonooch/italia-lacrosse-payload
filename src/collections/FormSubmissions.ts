@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../access/authenticated'
+import { createContactFromSubmission } from '../hooks/createContactFromSubmission'
 
 export const FormSubmissions: CollectionConfig = {
   slug: 'form-submissions',
@@ -14,6 +15,9 @@ export const FormSubmissions: CollectionConfig = {
     delete: authenticated,
     read: authenticated, // Staff only
     update: authenticated,
+  },
+  hooks: {
+    afterChange: [createContactFromSubmission],
   },
   fields: [
     {

@@ -572,6 +572,26 @@ export interface Form {
    */
   isPublic?: boolean | null;
   /**
+   * Automatically create contact records from form submissions
+   */
+  createContact?: boolean | null;
+  /**
+   * Default contact type for submissions from this form
+   */
+  contactType?: ('player' | 'donor' | 'coach') | null;
+  /**
+   * Map form fields to contact fields. Example: {"fullName": "firstName", "email": "email", "phoneNumber": "phone"}
+   */
+  contactFieldMapping?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
    * User who created this form
    */
   createdBy?: (number | null) | User;
@@ -1062,6 +1082,9 @@ export interface FormsSelect<T extends boolean = true> {
   fields?: T;
   isActive?: T;
   isPublic?: T;
+  createContact?: T;
+  contactType?: T;
+  contactFieldMapping?: T;
   createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
