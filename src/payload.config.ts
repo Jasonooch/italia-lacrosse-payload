@@ -17,6 +17,9 @@ import { Teams } from './collections/Teams'
 import { Coaches } from './collections/Coaches'
 import { Players } from './collections/Players'
 import { Events } from './collections/Events'
+import { Forms } from './collections/Forms'
+import { FormSubmissions } from './collections/FormSubmissions'
+import { Contacts } from './collections/Contacts'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -37,7 +40,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Posts, Categories, Events, Teams, Players, Coaches, Users, Media],
+  collections: [Posts, Categories, Events, Teams, Players, Coaches, Forms, FormSubmissions, Contacts, Users, Media],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

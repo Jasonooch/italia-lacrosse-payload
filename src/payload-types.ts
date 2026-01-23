@@ -73,6 +73,9 @@ export interface Config {
     teams: Team;
     players: Player;
     coaches: Coach;
+    forms: Form;
+    'form-submissions': FormSubmission;
+    contacts: Contact;
     users: User;
     media: Media;
     'payload-kv': PayloadKv;
@@ -94,6 +97,9 @@ export interface Config {
     teams: TeamsSelect<false> | TeamsSelect<true>;
     players: PlayersSelect<false> | PlayersSelect<true>;
     coaches: CoachesSelect<false> | CoachesSelect<true>;
+    forms: FormsSelect<false> | FormsSelect<true>;
+    'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
+    contacts: ContactsSelect<false> | ContactsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -532,6 +538,204 @@ export interface Player {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms".
+ */
+export interface Form {
+  id: number;
+  /**
+   * Form title displayed to users
+   */
+  title: string;
+  slug?: string | null;
+  /**
+   * Optional description shown above the form
+   */
+  description?: string | null;
+  /**
+   * Form field definitions (managed via dashboard)
+   */
+  fields:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Whether this form accepts submissions
+   */
+  isActive?: boolean | null;
+  /**
+   * Whether this form is publicly visible
+   */
+  isPublic?: boolean | null;
+  /**
+   * User who created this form
+   */
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions".
+ */
+export interface FormSubmission {
+  id: number;
+  /**
+   * The form this submission belongs to
+   */
+  form: number | Form;
+  /**
+   * Associated contact record
+   */
+  contact?: (number | null) | Contact;
+  /**
+   * Form response data
+   */
+  submissionData:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Submission processing status
+   */
+  status?: ('pending' | 'reviewed' | 'processed' | 'spam' | 'test') | null;
+  /**
+   * When the form was submitted
+   */
+  submittedAt?: string | null;
+  /**
+   * IP address of submitter
+   */
+  ipAddress?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contacts".
+ */
+export interface Contact {
+  id: number;
+  /**
+   * Contact first name
+   */
+  firstName: string;
+  /**
+   * Contact last name
+   */
+  lastName: string;
+  /**
+   * Contact email address
+   */
+  email: string;
+  /**
+   * Contact phone number
+   */
+  phone?: string | null;
+  /**
+   * Type of contact
+   */
+  contactType: 'player' | 'donor' | 'coach';
+  /**
+   * Program the player is interested in
+   */
+  program?: ('mens' | 'womens') | null;
+  /**
+   * Playing position (e.g., Attack, Midfield, Defense, Goalie)
+   */
+  position?: string | null;
+  /**
+   * Recruitment pipeline stage
+   */
+  playerStatus?: ('candidate' | 'pending' | 'citizen') | null;
+  /**
+   * School or university
+   */
+  education?: string | null;
+  /**
+   * Expected or actual graduation year
+   */
+  graduationYear?: number | null;
+  /**
+   * Current city and state
+   */
+  currentLocation?: string | null;
+  /**
+   * Italian heritage and family lineage details
+   */
+  lineage?: string | null;
+  /**
+   * Mailing address
+   */
+  address?: {
+    /**
+     * Street address
+     */
+    street?: string | null;
+    /**
+     * City
+     */
+    city?: string | null;
+    /**
+     * State or province
+     */
+    state?: string | null;
+    /**
+     * Zip or postal code
+     */
+    zip?: string | null;
+    /**
+     * Country
+     */
+    country?: string | null;
+  };
+  /**
+   * General notes about this contact
+   */
+  notes?: string | null;
+  /**
+   * Staff-only internal notes
+   */
+  internalNotes?: string | null;
+  /**
+   * Tags for filtering and organization
+   */
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * How this contact was created
+   */
+  source: 'csv-import' | 'interest-form' | 'manual';
+  /**
+   * Original form submission if created from interest form
+   */
+  sourceFormSubmission?: (number | null) | FormSubmission;
+  /**
+   * Last time staff reached out to this contact
+   */
+  lastContactedAt?: string | null;
+  /**
+   * User who created this contact
+   */
+  createdBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -669,6 +873,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'coaches';
         value: number | Coach;
+      } | null)
+    | ({
+        relationTo: 'forms';
+        value: number | Form;
+      } | null)
+    | ({
+        relationTo: 'form-submissions';
+        value: number | FormSubmission;
+      } | null)
+    | ({
+        relationTo: 'contacts';
+        value: number | Contact;
       } | null)
     | ({
         relationTo: 'users';
@@ -832,6 +1048,76 @@ export interface CoachesSelect<T extends boolean = true> {
   slug?: T;
   bio?: T;
   photo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms_select".
+ */
+export interface FormsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  fields?: T;
+  isActive?: T;
+  isPublic?: T;
+  createdBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions_select".
+ */
+export interface FormSubmissionsSelect<T extends boolean = true> {
+  form?: T;
+  contact?: T;
+  submissionData?: T;
+  status?: T;
+  submittedAt?: T;
+  ipAddress?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contacts_select".
+ */
+export interface ContactsSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
+  email?: T;
+  phone?: T;
+  contactType?: T;
+  program?: T;
+  position?: T;
+  playerStatus?: T;
+  education?: T;
+  graduationYear?: T;
+  currentLocation?: T;
+  lineage?: T;
+  address?:
+    | T
+    | {
+        street?: T;
+        city?: T;
+        state?: T;
+        zip?: T;
+        country?: T;
+      };
+  notes?: T;
+  internalNotes?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  source?: T;
+  sourceFormSubmission?: T;
+  lastContactedAt?: T;
+  createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
