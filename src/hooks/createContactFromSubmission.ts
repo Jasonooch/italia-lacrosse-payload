@@ -73,6 +73,7 @@ export const createContactFromSubmission: CollectionAfterChangeHook = async ({
     const contact = await req.payload.create({
       collection: 'contacts',
       data: contactData,
+      draft: false,
     })
 
     req.payload.logger.info(
@@ -86,6 +87,7 @@ export const createContactFromSubmission: CollectionAfterChangeHook = async ({
       data: {
         contact: contact.id,
       },
+      draft: false,
     })
   } catch (error) {
     req.payload.logger.error(
