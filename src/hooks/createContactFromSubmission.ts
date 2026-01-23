@@ -90,8 +90,9 @@ export const createContactFromSubmission: CollectionAfterChangeHook = async ({
       draft: false,
     })
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     req.payload.logger.error(
-      `Error creating contact from submission ${doc.id}: ${error.message}`
+      `Error creating contact from submission ${doc.id}: ${errorMessage}`
     )
     // Don't fail the submission if contact creation fails
   }
