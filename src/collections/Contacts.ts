@@ -76,18 +76,73 @@ export const Contacts: CollectionConfig = {
       options: [
         { label: "Men's", value: 'mens' },
         { label: "Women's", value: 'womens' },
+        { label: 'Boys Youth', value: 'boys-youth' },
+        { label: 'Girls Youth', value: 'girls-youth' },
+        { label: 'Fundraising', value: 'fundraising' },
+        { label: 'Donor', value: 'donor' },
+        { label: 'Coaching', value: 'coaching' },
       ],
       admin: {
-        condition: (data) => data.contactType === 'player',
-        description: 'Program the player is interested in',
+        description: 'Program or interest area',
       },
     },
     {
       name: 'position',
+      type: 'select',
+      options: [
+        { label: 'Attack', value: 'attack' },
+        { label: 'Midfield', value: 'midfield' },
+        { label: 'LSM', value: 'lsm' },
+        { label: 'Defense', value: 'defense' },
+        { label: 'Goalie', value: 'goalie' },
+        { label: 'Face Off', value: 'faceoff' },
+      ],
+      admin: {
+        condition: (data) => data.contactType === 'player',
+        description: 'Playing position',
+      },
+    },
+    {
+      name: 'dateOfBirth',
+      type: 'date',
+      admin: {
+        condition: (data) => data.contactType === 'player',
+        date: {
+          pickerAppearance: 'dayOnly',
+        },
+        description: 'Date of birth',
+      },
+    },
+    {
+      name: 'highSchool',
       type: 'text',
       admin: {
         condition: (data) => data.contactType === 'player',
-        description: 'Playing position (e.g., Attack, Midfield, Defense, Goalie)',
+        description: 'High school attended',
+      },
+    },
+    {
+      name: 'college',
+      type: 'text',
+      admin: {
+        condition: (data) => data.contactType === 'player',
+        description: 'College attended',
+      },
+    },
+    {
+      name: 'professionalExperience',
+      type: 'textarea',
+      admin: {
+        condition: (data) => data.contactType === 'player',
+        description: 'Professional lacrosse experience',
+      },
+    },
+    {
+      name: 'highlightTape',
+      type: 'text',
+      admin: {
+        condition: (data) => data.contactType === 'player',
+        description: 'Link to highlight video',
       },
     },
     {
@@ -128,9 +183,18 @@ export const Contacts: CollectionConfig = {
     },
     {
       name: 'lineage',
-      type: 'textarea',
+      type: 'select',
+      options: [
+        { label: 'I am an Italian citizen', value: 'italian-citizen' },
+        { label: 'Parent', value: 'parent' },
+        { label: 'Grandfather', value: 'grandfather' },
+        { label: 'Grandmother', value: 'grandmother' },
+        { label: 'Great-Grandfather', value: 'great-grandfather' },
+        { label: 'Great-Grandmother', value: 'great-grandmother' },
+        { label: "I'm not sure", value: 'not-sure' },
+      ],
       admin: {
-        description: 'Italian heritage and family lineage details',
+        description: 'Closest Italian-born relative',
       },
     },
 
