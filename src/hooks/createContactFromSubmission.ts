@@ -72,7 +72,7 @@ export const createContactFromSubmission: CollectionAfterChangeHook = async ({
     // Create the contact
     const contact = await req.payload.create({
       collection: 'contacts',
-      data: contactData,
+      data: contactData as any,
       draft: false,
     })
 
