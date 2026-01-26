@@ -666,19 +666,35 @@ export interface Contact {
    */
   contactType: 'player' | 'donor' | 'coach';
   /**
-   * Program the player is interested in
+   * Program or interest area
    */
-  program?: ('mens' | 'womens') | null;
+  program?: ('mens' | 'womens' | 'boys-youth' | 'girls-youth' | 'fundraising' | 'donor' | 'coaching') | null;
   /**
-   * Playing position (e.g., Attack, Midfield, Defense, Goalie)
+   * Playing position
    */
-  position?: string | null;
+  position?: ('attack' | 'midfield' | 'lsm' | 'defense' | 'goalie' | 'faceoff') | null;
+  /**
+   * Date of birth
+   */
+  dateOfBirth?: string | null;
+  /**
+   * High school attended
+   */
+  highSchool?: string | null;
+  /**
+   * Professional lacrosse experience
+   */
+  professionalExperience?: string | null;
+  /**
+   * Link to highlight video
+   */
+  highlightTape?: string | null;
   /**
    * Recruitment pipeline stage
    */
   playerStatus?: ('candidate' | 'pending' | 'citizen') | null;
   /**
-   * School or university
+   * College attended
    */
   education?: string | null;
   /**
@@ -690,9 +706,23 @@ export interface Contact {
    */
   currentLocation?: string | null;
   /**
-   * Italian heritage and family lineage details
+   * Closest Italian-born relative
    */
-  lineage?: string | null;
+  lineage?:
+    | (
+        | 'italian-citizen'
+        | 'parent'
+        | 'grandfather'
+        | 'grandmother'
+        | 'great-grandfather'
+        | 'great-grandmother'
+        | 'not-sure'
+      )
+    | null;
+  /**
+   * Italian citizenship status
+   */
+  citizenship?: ('citizen' | 'pending' | 'dnq' | 'not-a-citizen') | null;
   /**
    * Mailing address
    */
@@ -1115,11 +1145,16 @@ export interface ContactsSelect<T extends boolean = true> {
   contactType?: T;
   program?: T;
   position?: T;
+  dateOfBirth?: T;
+  highSchool?: T;
+  professionalExperience?: T;
+  highlightTape?: T;
   playerStatus?: T;
   education?: T;
   graduationYear?: T;
   currentLocation?: T;
   lineage?: T;
+  citizenship?: T;
   address?:
     | T
     | {
