@@ -122,14 +122,6 @@ export const Contacts: CollectionConfig = {
       },
     },
     {
-      name: 'college',
-      type: 'text',
-      admin: {
-        condition: (data) => data.contactType === 'player',
-        description: 'College attended',
-      },
-    },
-    {
       name: 'professionalExperience',
       type: 'textarea',
       admin: {
@@ -162,9 +154,10 @@ export const Contacts: CollectionConfig = {
     // Background Information
     {
       name: 'education',
+      label: 'College',
       type: 'text',
       admin: {
-        description: 'School or university',
+        description: 'College attended',
       },
     },
     {
@@ -195,6 +188,19 @@ export const Contacts: CollectionConfig = {
       ],
       admin: {
         description: 'Closest Italian-born relative',
+      },
+    },
+    {
+      name: 'citizenship',
+      type: 'select',
+      options: [
+        { label: 'Citizen', value: 'citizen' },
+        { label: 'Pending', value: 'pending' },
+        { label: 'DNQ', value: 'dnq' },
+        { label: 'Not A Citizen', value: 'not-a-citizen' },
+      ],
+      admin: {
+        description: 'Italian citizenship status',
       },
     },
 
