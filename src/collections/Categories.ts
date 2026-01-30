@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
+import { adminOnly } from '@/access'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -10,10 +11,10 @@ export const Categories: CollectionConfig = {
     group: 'Content',
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: anyone,
-    update: authenticated,
+    create: adminOnly,
+    delete: adminOnly,
+    read: adminOnly,
+    update: adminOnly,
   },
   fields: [
     {

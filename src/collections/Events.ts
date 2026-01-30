@@ -4,6 +4,7 @@ import { slugField } from '../fields/slug'
 
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
+import { adminOnly } from '@/access'
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -13,10 +14,10 @@ export const Events: CollectionConfig = {
     defaultColumns: ['name', 'year', 'location', 'startDate', 'updatedAt'],
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: anyone,
-    update: authenticated,
+    create: adminOnly,
+    delete: adminOnly,
+    read: adminOnly,
+    update: adminOnly,
   },
   fields: [
     // Auto-Generated Name Fields (outside tabs)

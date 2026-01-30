@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../access/authenticated'
+import { adminOnly } from '@/access'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -12,10 +13,10 @@ export const Users: CollectionConfig = {
   auth: true,
   access: {
     admin: ({ req: { user } }) => Boolean(user),
-    create: authenticated,
-    read: authenticated,
-    update: authenticated,
-    delete: authenticated,
+    create: adminOnly,
+    read: adminOnly,
+    update: adminOnly,
+    delete: adminOnly,
   },
   timestamps: true,
   hooks: {

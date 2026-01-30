@@ -8,16 +8,17 @@ import {
 
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
+import { adminOnly } from '@/access'
 
 export const Media: CollectionConfig = {
   slug: 'media',
   folders: true,
   timestamps: true,
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: anyone,
-    update: authenticated,
+    create: adminOnly,
+    delete: adminOnly,
+    read: adminOnly,
+    update: adminOnly,
   },
   fields: [
     {

@@ -9,7 +9,6 @@ import { GetPlatformProxyOptions } from 'wrangler'
 import { r2Storage } from '@payloadcms/storage-r2'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { resendAdapter } from '@payloadcms/email-resend'
-
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
@@ -18,9 +17,9 @@ import { Teams } from './collections/Teams'
 import { Coaches } from './collections/Coaches'
 import { Players } from './collections/Players'
 import { Events } from './collections/Events'
+import { Contacts } from './collections/Contacts'
 import { Forms } from './collections/Forms'
 import { FormSubmissions } from './collections/FormSubmissions'
-import { Contacts } from './collections/Contacts'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -28,9 +27,10 @@ const realpath = (value: string) => (fs.existsSync(value) ? fs.realpathSync(valu
 
 const isCLI = process.argv.some((value) => realpath(value).endsWith(path.join('payload', 'bin.js')))
 const isProduction = process.env.NODE_ENV === 'production'
+const isBuild = process.argv.some((arg) => arg.includes('next') && arg.includes('build'))
 
 const cloudflare =
-  isCLI || !isProduction
+  isCLI || !isProduction || isBuild
     ? await getCloudflareContextFromWrangler()
     : await getCloudflareContext({ async: true })
 
@@ -40,8 +40,31 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    dashboard: {
+      widgets: [
+        {
+          slug: 'total-contacts',
+          label: 'Total Contacts',
+          ComponentPath: './widgets/TotalUsers.tsx#default',
+          minWidth: 'x-small',
+          maxWidth: 'full',
+        },
+      ],
+    },
   },
-  collections: [Posts, Categories, Events, Teams, Players, Coaches, Forms, FormSubmissions, Contacts, Users, Media],
+  collections: [
+    Posts,
+    Categories,
+    Events,
+    Teams,
+    Players,
+    Coaches,
+    Contacts,
+    Users,
+    Media,
+    Forms,
+    FormSubmissions,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   email: resendAdapter({

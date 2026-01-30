@@ -4,6 +4,7 @@ import { slugField } from '../fields/slug'
 
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
+import { adminOnly } from '@/access'
 
 export const Coaches: CollectionConfig = {
   slug: 'coaches',
@@ -13,10 +14,10 @@ export const Coaches: CollectionConfig = {
     defaultColumns: ['name', 'updatedAt'],
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: anyone,
-    update: authenticated,
+    create: adminOnly,
+    delete: adminOnly,
+    read: adminOnly,
+    update: adminOnly,
   },
   fields: [
     {

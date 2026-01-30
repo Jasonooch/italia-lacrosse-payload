@@ -25,15 +25,16 @@ import { Banner } from '../blocks/Banner/config'
 import { Code } from '../blocks/Code/config'
 import { MediaBlock } from '../blocks/MediaBlock/config'
 import { Button } from '../blocks/Button/config'
+import { adminOnly } from '@/access'
 
 export const Posts: CollectionConfig<'posts'> = {
   slug: 'posts',
   timestamps: true,
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: authenticatedOrPublished,
-    update: authenticated,
+    create: adminOnly,
+    delete: adminOnly,
+    read: adminOnly,
+    update: adminOnly,
   },
   admin: {
     useAsTitle: 'title',

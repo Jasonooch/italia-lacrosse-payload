@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
+import { adminOnly } from '@/access'
 
 export const Players: CollectionConfig = {
   slug: 'players',
@@ -11,10 +12,10 @@ export const Players: CollectionConfig = {
     defaultColumns: ['fullName', 'position', 'updatedAt'],
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
-    read: anyone,
-    update: authenticated,
+    create: adminOnly,
+    delete: adminOnly,
+    read: adminOnly,
+    update: adminOnly,
   },
   hooks: {
     beforeChange: [
