@@ -53,19 +53,8 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.run(sql`CREATE INDEX \`form_submissions_updated_at_idx\` ON \`form_submissions\` (\`updated_at\`);`)
   await db.run(sql`CREATE INDEX \`form_submissions_created_at_idx\` ON \`form_submissions\` (\`created_at\`);`)
 
-  // Update payload_locked_documents_rels to work with new structure
-  await db.run(
-    sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`forms_id\` integer REFERENCES forms(id);`,
-  )
-  await db.run(
-    sql`CREATE INDEX \`payload_locked_documents_rels_forms_id_idx\` ON \`payload_locked_documents_rels\` (\`forms_id\`);`,
-  )
-  await db.run(
-    sql`ALTER TABLE \`payload_locked_documents_rels\` ADD \`form_submissions_id\` integer REFERENCES form_submissions(id);`,
-  )
-  await db.run(
-    sql`CREATE INDEX \`payload_locked_documents_rels_form_submissions_id_idx\` ON \`payload_locked_documents_rels\` (\`form_submissions_id\`);`,
-  )
+  // Note: forms_id and form_submissions_id columns already exist in payload_locked_documents_rels
+  // from the previous migration (20260127_202600_recreate_forms_for_plugin), so we skip adding them
 
   await db.run(sql`PRAGMA foreign_keys=ON;`)
 }
@@ -117,9 +106,8 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   await db.run(sql`DROP TABLE \`form_submissions\`;`)
   await db.run(sql`ALTER TABLE \`__new_form_submissions\` RENAME TO \`form_submissions\`;`)
 
-  // Remove payload_locked_documents_rels columns
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` DROP COLUMN \`forms_id\`;`)
-  await db.run(sql`ALTER TABLE \`payload_locked_documents_rels\` DROP COLUMN \`form_submissions_id\`;`)
+  // Note: We don't remove forms_id and form_submissions_id from payload_locked_documents_rels
+  // because they were added by the previous migration (20260127_202600_recreate_forms_for_plugin)
 
   await db.run(sql`PRAGMA foreign_keys=ON;`)
 }
