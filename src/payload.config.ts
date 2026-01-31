@@ -40,6 +40,12 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      graphics: {
+        Logo: './components/admin/Logo.tsx#default',
+        Icon: './components/admin/Icon.tsx#default',
+      },
+    },
     dashboard: {
       widgets: [
         {
