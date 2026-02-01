@@ -1,0 +1,5 @@
+firstName,lastName,email,phone,contactType,program,citizenship,position,dateOfBirth,lineage,highSchool,college,graduationYear,professionalExperience,highlightTape,parent-email,parent-phone,address.street,address.city,address.state,address.zip,address.country,notes
+John,Smith,john.smith@example.com,555-0100,player,mens,citizen,attack,1998-05-15,italian-citizen,Lincoln High School,Duke University,2020,Professional experience at PLL,https://youtube.com/watch?v=example,,,123 Main St,Boston,MA,02101,USA,Top scorer
+Maria,Rossi,maria.rossi@example.com,555-0101,player,womens,pending,midfield,2002-08-22,grandfather,Madison High School,Syracuse University,2024,,,,456 Oak Ave,Syracuse,NY,13210,USA,Excellent team player
+Tony,Bianchi,tony.bianchi@example.com,555-0102,coach,coaching,citizen,,1975-03-10,italian-citizen,,,1993,15 years coaching experience,,,,789 Elm St,Chicago,IL,60614,USA,Head coach candidate
+Emma,Conti,emma.conti@example.com,555-0103,player,girls-youth,not-sure,goalie,2012-11-05,not-sure,Washington Middle School,,2026,,,parent@example.com,555-0104,321 Pine Rd,Portland,OR,97201,USA,Youth program prospect

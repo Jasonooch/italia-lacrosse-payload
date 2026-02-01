@@ -107,7 +107,28 @@ await req.payload.update({
 ### 5. Slug Generation
 Use the centralized slug utility in `src/fields/slug.ts` for auto-generating URL-friendly slugs from source fields.
 
-### 6. Migration Best Practices (IMPORTANT)
+### 6. CSV Import/Export
+The project uses `payload-plugin-import-export` for bulk data operations. Accessible via admin UI:
+- **Export**: Click "Export" button in collection list view → Choose CSV or JSON → Downloads file
+- **Import**: Click "Import" button → Upload CSV/JSON → Review results (success count + error report)
+
+**How it works:**
+- Nested fields flatten to dot-notation in CSV (e.g., `address.street`, `address.city`)
+- Import automatically reconstructs nested structure from flat CSV columns
+- Respects access control (only exports/imports fields user can read/write)
+- Failed imports downloadable as error CSV with line numbers
+- Client-side processing (minimal server load)
+
+**One-time Google Form import:**
+For initial bulk import of Google Form data, use `tools/transform-import.js` to convert CSV format:
+```bash
+node tools/transform-import.js ~/Desktop/form-export.csv ./ready-to-import.csv
+```
+
+**Future contacts:**
+New contacts automatically created via contact form submissions (no manual import needed)
+
+### 7. Migration Best Practices (IMPORTANT)
 **NEVER reset/delete migrations once deployed to production.** The remote D1 database tracks which migrations have run. If you delete old migrations and create a fresh one:
 - The remote DB still has old tables
 - The new migration tries to create tables that already exist

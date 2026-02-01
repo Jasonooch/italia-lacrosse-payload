@@ -46,7 +46,6 @@ export const Contacts: CollectionConfig = {
       ],
       admin: {
         position: 'sidebar',
-        description: 'Type of contact',
       },
     },
     {
@@ -63,22 +62,19 @@ export const Contacts: CollectionConfig = {
       ],
       admin: {
         position: 'sidebar',
-        description: 'Program or interest area',
       },
     },
     {
-      name: 'source',
+      name: 'citizenship',
       type: 'select',
-      required: true,
-      defaultValue: 'manual',
       options: [
-        { label: 'CSV Import', value: 'csv-import' },
-        { label: 'Interest Form', value: 'interest-form' },
-        { label: 'Manual Entry', value: 'manual' },
+        { label: 'Citizen', value: 'citizen' },
+        { label: 'Pending', value: 'pending' },
+        { label: 'DNQ', value: 'dnq' },
+        { label: 'Not A Citizen', value: 'not-a-citizen' },
       ],
       admin: {
         position: 'sidebar',
-        description: 'How this contact was created',
       },
     },
     {
@@ -88,7 +84,6 @@ export const Contacts: CollectionConfig = {
       admin: {
         position: 'sidebar',
         readOnly: true,
-        description: 'User who created this contact',
       },
       hooks: {
         beforeChange: [
@@ -99,6 +94,14 @@ export const Contacts: CollectionConfig = {
             return value
           },
         ],
+      },
+    },
+    {
+      name: 'notes',
+      type: 'textarea',
+      admin: {
+        position: 'sidebar',
+        description: 'General notes about this contact',
       },
     },
 
@@ -116,17 +119,13 @@ export const Contacts: CollectionConfig = {
                   name: 'firstName',
                   type: 'text',
                   required: true,
-                  admin: {
-                    description: 'Contact first name',
-                  },
+                  admin: {},
                 },
                 {
                   name: 'lastName',
                   type: 'text',
                   required: true,
-                  admin: {
-                    description: 'Contact last name',
-                  },
+                  admin: {},
                 },
               ],
             },
@@ -136,15 +135,27 @@ export const Contacts: CollectionConfig = {
               required: true,
               unique: true,
               index: true,
-              admin: {
-                description: 'Contact email address',
-              },
             },
             {
               name: 'phone',
               type: 'text',
+            },
+            {
+              name: 'parent-email',
+              type: 'email',
+              unique: true,
+              index: true,
               admin: {
-                description: 'Contact phone number',
+                condition: (data) =>
+                  data.program === 'boys-youth' || data.program === 'girls-youth',
+              },
+            },
+            {
+              name: 'parent-phone',
+              type: 'text',
+              admin: {
+                condition: (data) =>
+                  data.program === 'boys-youth' || data.program === 'girls-youth',
               },
             },
             {
@@ -152,14 +163,22 @@ export const Contacts: CollectionConfig = {
               type: 'date',
               admin: {
                 condition: (data) => data.contactType === 'player',
-                description: 'Date of birth',
               },
             },
             {
-              name: 'notes',
-              type: 'textarea',
+              name: 'lineage',
+              type: 'select',
+              options: [
+                { label: 'I am an Italian citizen', value: 'italian-citizen' },
+                { label: 'Parent', value: 'parent' },
+                { label: 'Grandfather', value: 'grandfather' },
+                { label: 'Grandmother', value: 'grandmother' },
+                { label: 'Great-Grandfather', value: 'great-grandfather' },
+                { label: 'Great-Grandmother', value: 'great-grandmother' },
+                { label: "I'm not sure", value: 'not-sure' },
+              ],
               admin: {
-                description: 'General notes about this contact',
+                description: 'Closest Italian-born relative',
               },
             },
           ],
@@ -180,7 +199,6 @@ export const Contacts: CollectionConfig = {
               ],
               admin: {
                 condition: (data) => data.contactType === 'player',
-                description: 'Position',
               },
             },
             {
@@ -188,16 +206,13 @@ export const Contacts: CollectionConfig = {
               type: 'text',
               admin: {
                 condition: (data) => data.contactType === 'player',
-                description: 'High school attended',
               },
             },
             {
               name: 'college',
               label: 'College',
               type: 'text',
-              admin: {
-                description: 'College attended',
-              },
+              admin: {},
             },
             {
               name: 'graduationYear',
@@ -211,7 +226,6 @@ export const Contacts: CollectionConfig = {
               type: 'textarea',
               admin: {
                 condition: (data) => data.contactType === 'player',
-                description: 'Professional lacrosse experience',
               },
             },
             {
@@ -219,36 +233,6 @@ export const Contacts: CollectionConfig = {
               type: 'text',
               admin: {
                 condition: (data) => data.contactType === 'player',
-                description: 'Link to highlight video',
-              },
-            },
-            {
-              name: 'lineage',
-              type: 'select',
-              options: [
-                { label: 'I am an Italian citizen', value: 'italian-citizen' },
-                { label: 'Parent', value: 'parent' },
-                { label: 'Grandfather', value: 'grandfather' },
-                { label: 'Grandmother', value: 'grandmother' },
-                { label: 'Great-Grandfather', value: 'great-grandfather' },
-                { label: 'Great-Grandmother', value: 'great-grandmother' },
-                { label: "I'm not sure", value: 'not-sure' },
-              ],
-              admin: {
-                description: 'Closest Italian-born relative',
-              },
-            },
-            {
-              name: 'citizenship',
-              type: 'select',
-              options: [
-                { label: 'Citizen', value: 'citizen' },
-                { label: 'Pending', value: 'pending' },
-                { label: 'DNQ', value: 'dnq' },
-                { label: 'Not A Citizen', value: 'not-a-citizen' },
-              ],
-              admin: {
-                description: 'Italian citizenship status',
               },
             },
           ],

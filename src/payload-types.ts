@@ -543,70 +543,21 @@ export interface Player {
 export interface Contact {
   id: number;
   fullName?: string | null;
-  /**
-   * Type of contact
-   */
   contactType: 'player' | 'donor' | 'coach';
-  /**
-   * Program or interest area
-   */
   program?: ('mens' | 'womens' | 'boys-youth' | 'girls-youth' | 'fundraising' | 'donor' | 'coaching') | null;
-  /**
-   * How this contact was created
-   */
-  source: 'csv-import' | 'interest-form' | 'manual';
-  /**
-   * User who created this contact
-   */
+  citizenship?: ('citizen' | 'pending' | 'dnq' | 'not-a-citizen') | null;
   createdBy?: (number | null) | User;
-  /**
-   * Contact first name
-   */
-  firstName: string;
-  /**
-   * Contact last name
-   */
-  lastName: string;
-  /**
-   * Contact email address
-   */
-  email: string;
-  /**
-   * Contact phone number
-   */
-  phone?: string | null;
-  /**
-   * Date of birth
-   */
-  dateOfBirth?: string | null;
   /**
    * General notes about this contact
    */
   notes?: string | null;
-  /**
-   * Position
-   */
-  position?: ('attack' | 'midfield' | 'lsm' | 'defense' | 'goalie' | 'faceoff') | null;
-  /**
-   * High school attended
-   */
-  highSchool?: string | null;
-  /**
-   * College attended
-   */
-  college?: string | null;
-  /**
-   * Expected or actual graduation year
-   */
-  graduationYear?: number | null;
-  /**
-   * Professional lacrosse experience
-   */
-  professionalExperience?: string | null;
-  /**
-   * Link to highlight video
-   */
-  highlightTape?: string | null;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  'parent-email'?: string | null;
+  'parent-phone'?: string | null;
+  dateOfBirth?: string | null;
   /**
    * Closest Italian-born relative
    */
@@ -621,10 +572,15 @@ export interface Contact {
         | 'not-sure'
       )
     | null;
+  position?: ('attack' | 'midfield' | 'lsm' | 'defense' | 'goalie' | 'faceoff') | null;
+  highSchool?: string | null;
+  college?: string | null;
   /**
-   * Italian citizenship status
+   * Expected or actual graduation year
    */
-  citizenship?: ('citizen' | 'pending' | 'dnq' | 'not-a-citizen') | null;
+  graduationYear?: number | null;
+  professionalExperience?: string | null;
+  highlightTape?: string | null;
   /**
    * Mailing address
    */
@@ -1031,22 +987,23 @@ export interface ContactsSelect<T extends boolean = true> {
   fullName?: T;
   contactType?: T;
   program?: T;
-  source?: T;
+  citizenship?: T;
   createdBy?: T;
+  notes?: T;
   firstName?: T;
   lastName?: T;
   email?: T;
   phone?: T;
+  'parent-email'?: T;
+  'parent-phone'?: T;
   dateOfBirth?: T;
-  notes?: T;
+  lineage?: T;
   position?: T;
   highSchool?: T;
   college?: T;
   graduationYear?: T;
   professionalExperience?: T;
   highlightTape?: T;
-  lineage?: T;
-  citizenship?: T;
   address?:
     | T
     | {

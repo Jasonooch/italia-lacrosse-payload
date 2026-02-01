@@ -38,6 +38,7 @@
     "graphql": "^16.8.1",
     "next": "15.4.10",
     "payload": "3.73.0",
+    "payload-plugin-import-export": "^3.0.20",
     "react": "19.2.1",
     "react-dom": "19.2.1"
   },

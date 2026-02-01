@@ -9,6 +9,7 @@ import { GetPlatformProxyOptions } from 'wrangler'
 import { r2Storage } from '@payloadcms/storage-r2'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { resendAdapter } from '@payloadcms/email-resend'
+import importExportPlugin from 'payload-plugin-import-export'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
@@ -94,6 +95,9 @@ export default buildConfig({
       generateDescription: ({ doc }) => doc?.meta?.description || '',
       generateURL: ({ doc }) =>
         `${process.env.FRONTEND_URL || 'https://italialacrosse.com'}/posts/${doc?.slug || ''}`,
+    }),
+    importExportPlugin({
+      // Enable import/export for all collections (exclude if needed)
     }),
   ],
 })
