@@ -74,9 +74,10 @@ export default buildConfig({
     FormSubmissions,
   ],
   editor: lexicalEditor(),
+  serverURL: process.env.FRONTEND_URL || 'https://italia-lacrosse-payload.jasonorlando14.workers.dev',
   secret: process.env.PAYLOAD_SECRET || '',
   email: resendAdapter({
-    defaultFromAddress: 'noreply@italialacrosse.com',
+    defaultFromAddress: 'noreply@italialacrosse.us',
     defaultFromName: 'Italia Lacrosse',
     apiKey: process.env.RESEND_API_KEY || '',
   }),
