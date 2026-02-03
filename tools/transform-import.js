@@ -18,8 +18,11 @@ const mapProgram = (value) => {
     "Women's Player": 'womens',
     "Boys Youth Player": 'boys-youth',
     "Girls Youth Player": 'girls-youth',
-    "Fundraising Commitee": 'fundraising',
+    "Fundraising Commitee":  'fundraising',
     "Fundraising Committee": 'fundraising',
+    "Donations/Sponsorship": 'donor',
+    "Player Recruitment":    'donor',
+    "Coach":                 'coaching',
   }
   return map[value] || ''
 }
@@ -50,19 +53,20 @@ const mapPosition = (value) => {
     'Attack': 'attack',
     'Midfield': 'midfield',
     'Defense': 'defense',
+    'Close Defense': 'defense',
     'Goalie': 'goalie',
     'Faceoff': 'faceoff',
     'Face Off': 'faceoff',
     'LSM': 'lsm',
   }
-  return map[value] || value.toLowerCase()
+  return map[value] || ''
 }
 
 const mapCitizenship = (lineage) => {
   if (lineage === 'italian-citizen') return 'citizen'
   if (lineage === 'parent' || lineage === 'grandfather' || lineage === 'grandmother' ||
       lineage === 'great-grandfather' || lineage === 'great-grandmother') return 'pending'
-  return 'not-sure'
+  return '' // unknown — the beforeChange hook will set not-a-citizen on create
 }
 
 const formatDate = (value) => {
@@ -157,74 +161,112 @@ const transformCSV = (inputPath, outputPath) => {
 
   console.log(`Found ${rows.length} rows to transform`)
 
-  // Map column indices
-  const getCol = (name) => headers.findIndex(h => h.trim() === name)
-
-  const cols = {
-    program: getCol('Program'),
-    firstName: getCol('First Name'),
-    lastName: getCol('Last Name'),
-    email: getCol('Email Address'),
-    phone: getCol('Phone Number'),
-    lineage: getCol('Lineage'),
-    dateOfBirth: getCol('Date of Birth'),
-    position: getCol('Position'),
-    highSchool: getCol('High School'),
-    college: getCol('College'),
-    professionalExperience: getCol('Professional Experience'),
-    city: getCol('City'),
-    state: getCol('State'),
-    country: getCol('Country'),
-    highlightTape: getCol('Highlight Tape'),
-    townOfResidence: getCol('Town of Residence'),
-    stateOfResidence: getCol('State of Residence'),
-    parentFirstName: getCol('Parent/Guardian First Name'),
-    parentLastName: getCol('Parent/Guardian Last Name'),
-    parentEmail: getCol('Parent Email'),
-    parentPhone: getCol('Parent Phone Number'),
-    graduationYear: getCol('Year of Graduation'),
-  }
+  // Hard-coded column indices matching the Google Form export layout.
+  // Duplicate headers (Position, Date of Birth, Town/State of Residence) exist
+  // so we must use indices, not findIndex.
+  //  0  Timestamp
+  //  1  Please select your interest in Italia Lacrosse
+  //  2  First Name
+  //  3  Last Name
+  //  4  Email Address
+  //  5  Phone Number
+  //  6  Who is your closest Italian born relative?
+  //  7  Date of Birth          (adult players)
+  //  8  Position               (adult players)
+  //  9  High School Attended
+  // 10  College Attended
+  // 11  Professional Experience
+  // 12  Town of Residence      (adult players)
+  // 13  State of Residence     (adult players)
+  // 14  Country of Residence
+  // 15  Link to highlight tape if available
+  // 16  Are you over the age of 25?
+  // 17  Date of Birth          (youth players)
+  // 18  Year of Graduation
+  // 19  What team are you interested in?
+  // 20  Position               (youth players)
+  // 21  Town of Residence      (youth players)
+  // 22  State of Residence     (youth players)
+  // 23  High School (if U16)
+  // 24  Parent/Guardian First Name
+  // 25  Parent/Guardian Last Name
+  // 26  Parent/Guardian Email
+  // 27  Parent/Guardian Phone Number
+  // 28  What level are you interested in coaching?
+  // 29  Please describe how you would like to be involved…  (donor involvement)
+  // 30  Please describe your coaching experience
+  // 31  State of Residence     (third duplicate — ignore)
 
   // Transform rows
   const outputRows = rows.map((row, idx) => {
-    const program = row[cols.program] || ''
-    const lineageRaw = row[cols.lineage] || ''
+    const interestRaw = (row[1] || '').trim()
+    const isYouth = interestRaw.includes('Youth')
+    const isCoach = interestRaw === 'Coach'
+    const isDonor = interestRaw === 'Donations/Sponsorship' ||
+                    interestRaw === 'Fundraising Commitee' ||
+                    interestRaw === 'Fundraising Committee' ||
+                    interestRaw === 'Player Recruitment'
+
+    const lineageRaw = (row[6] || '').trim()
     const lineage = mapLineage(lineageRaw)
 
+    // Youth players use columns 17–23; adults use 7–13
+    const dob       = isYouth ? row[17] : row[7]
+    const position  = isYouth ? row[20] : row[8]
+    const town      = isYouth ? row[21] : row[12]
+    const state     = isYouth ? row[22] : row[13]
+    const highSchool = isYouth ? (row[23] || '') : (row[9] || '')
+
     return {
-      firstName: row[cols.firstName] || '',
-      lastName: row[cols.lastName] || '',
-      email: row[cols.email] || '',
-      phone: row[cols.phone] || 'N/A',
-      contactType: mapContactType(program),
-      program: mapProgram(program),
+      firstName: (row[2] || '').trim(),
+      lastName:  (row[3] || '').trim(),
+      email:     (row[4] || '').trim(),
+      phone:     (row[5] || '').trim(),
+      contactType: isCoach ? 'coach' : isDonor ? 'donor' : 'player',
+      program:   mapProgram(interestRaw),
       citizenship: mapCitizenship(lineage),
-      lineage: lineage,
-      dateOfBirth: formatDate(row[cols.dateOfBirth]),
-      position: mapPosition(row[cols.position]),
-      highSchool: row[cols.highSchool] || '',
-      college: row[cols.college] || '',
-      graduationYear: row[cols.graduationYear] || '',
-      professionalExperience: row[cols.professionalExperience] || '',
-      highlightTape: row[cols.highlightTape] || '',
-      'parent-email': row[cols.parentEmail] || '',
-      'parent-phone': row[cols.parentPhone] || '',
+      lineage:   lineage,
+      dateOfBirth: formatDate((dob || '').trim()),
+      position:  mapPosition((position || '').trim()),
+      highSchool: highSchool.trim(),
+      college:   (row[10] || '').trim(),
+      graduationYear: (row[18] || '').trim(),
+      professionalExperience: (row[11] || '').trim(),
+      highlightTape: (row[15] || '').trim(),
+      'parent-email': (row[26] || '').trim(),
+      'parent-phone': (row[27] || '').trim(),
+      involvement: isDonor ? (row[29] || '').trim() : '',
+      coachingExperience: isCoach ? (row[30] || '').trim() : '',
       'address.street': '',
-      'address.city': row[cols.city] || row[cols.townOfResidence] || '',
-      'address.state': row[cols.state] || row[cols.stateOfResidence] || '',
-      'address.zip': '',
-      'address.country': row[cols.country] || 'USA',
+      'address.city':  (town  || '').trim(),
+      'address.state': (state || '').trim(),
+      'address.zip':   '',
+      'address.country': (row[14] || '').trim() || 'USA',
       notes: '',
     }
-  }).filter(row => row.email && row.email !== 'N/A') // Skip rows without email
+  }).filter(row => row.email && row.email.includes('@')) // Skip rows without a valid email
+
+  // parent-email is unique in the schema — only the first sibling keeps it
+  const seenParentEmails = new Set()
+  outputRows.forEach(row => {
+    const pe = row['parent-email']
+    if (!pe || pe === 'N/A') { row['parent-email'] = ''; row['parent-phone'] = ''; return }
+    if (seenParentEmails.has(pe.toLowerCase())) {
+      row['parent-email'] = ''
+      row['parent-phone'] = ''
+    } else {
+      seenParentEmails.add(pe.toLowerCase())
+    }
+  })
 
   // Build output CSV
   const outputHeaders = [
     'firstName', 'lastName', 'email', 'phone', 'contactType', 'program',
     'citizenship', 'lineage', 'dateOfBirth', 'position', 'highSchool',
     'college', 'graduationYear', 'professionalExperience', 'highlightTape',
-    'parent-email', 'parent-phone', 'address.street', 'address.city',
-    'address.state', 'address.zip', 'address.country', 'notes'
+    'parent-email', 'parent-phone', 'involvement', 'coachingExperience',
+    'address.street', 'address.city', 'address.state', 'address.zip',
+    'address.country', 'notes'
   ]
 
   const outputLines = [

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { adminOnly } from '@/access'
 
 import { authenticated } from '../access/authenticated'
 
@@ -11,10 +12,20 @@ export const Contacts: CollectionConfig = {
     group: 'Admin',
   },
   access: {
-    create: authenticated,
-    delete: authenticated,
+    create: adminOnly,
+    delete: adminOnly,
     read: authenticated,
-    update: authenticated,
+    update: adminOnly,
+  },
+  hooks: {
+    beforeChange: [
+      ({ data, operation }) => {
+        if (operation === 'create') {
+          data.citizenship = data.lineage === 'italian-citizen' ? 'citizen' : 'not-a-citizen'
+        }
+        return data
+      },
+    ],
   },
   fields: [
     // Virtual field for display

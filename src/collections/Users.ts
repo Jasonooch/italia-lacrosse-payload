@@ -69,12 +69,12 @@ export const Users: CollectionConfig = {
         update: ({ req: { user } }) => {
           return Boolean(user?.roles?.includes('admin'))
         },
-      },
-      admin: {
-        description: 'Admin has full access, Editor can create/edit content',
-        condition: ({ user }) => {
+        read: ({ req: { user } }) => {
           return Boolean(user?.roles?.includes('admin'))
         },
+      },
+      admin: {
+        description: 'Only admins can view and edit user roles',
       },
     },
   ],

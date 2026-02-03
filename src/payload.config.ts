@@ -9,7 +9,6 @@ import { GetPlatformProxyOptions } from 'wrangler'
 import { r2Storage } from '@payloadcms/storage-r2'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { resendAdapter } from '@payloadcms/email-resend'
-import importExportPlugin from 'payload-plugin-import-export'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
@@ -26,12 +25,14 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const realpath = (value: string) => (fs.existsSync(value) ? fs.realpathSync(value) : undefined)
 
-const isCLI = process.argv.some((value) => realpath(value).endsWith(path.join('payload', 'bin.js')))
+const isCLI = process.argv.some((value) => realpath(value)?.endsWith(path.join('payload', 'bin.js')))
 const isProduction = process.env.NODE_ENV === 'production'
 const isBuild = process.argv.some((arg) => arg.includes('next') && arg.includes('build'))
 
+const isLocalScript = process.env.PAYLOAD_SCRIPT === 'true'
+
 const cloudflare =
-  isCLI || !isProduction || isBuild
+  isCLI || !isProduction || isBuild || isLocalScript
     ? await getCloudflareContextFromWrangler()
     : await getCloudflareContext({ async: true })
 
@@ -95,9 +96,6 @@ export default buildConfig({
       generateDescription: ({ doc }) => doc?.meta?.description || '',
       generateURL: ({ doc }) =>
         `${process.env.FRONTEND_URL || 'https://italialacrosse.com'}/posts/${doc?.slug || ''}`,
-    }),
-    importExportPlugin({
-      // Enable import/export for all collections (exclude if needed)
     }),
   ],
 })

@@ -42,6 +42,9 @@ next-env.d.ts
 
 /media
 
+# Generated import CSVs (may contain PII)
+/contacts-transformed.csv
+
 # Playwright
 node_modules/
 /test-results/
