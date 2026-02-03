@@ -429,9 +429,9 @@ export interface User {
   firstName: string;
   lastName: string;
   /**
-   * Admin has full access, Editor can create/edit content
+   * Only admins can view and edit user roles
    */
-  roles?: ('admin' | 'editor')[] | null;
+  roles: ('admin' | 'editor')[];
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -572,6 +572,14 @@ export interface Contact {
         | 'not-sure'
       )
     | null;
+  /**
+   * How they would like to be involved with Italia Lacrosse
+   */
+  involvement?: string | null;
+  /**
+   * Coaching background and experience
+   */
+  coachingExperience?: string | null;
   position?: ('attack' | 'midfield' | 'lsm' | 'defense' | 'goalie' | 'faceoff') | null;
   highSchool?: string | null;
   college?: string | null;
@@ -998,6 +1006,8 @@ export interface ContactsSelect<T extends boolean = true> {
   'parent-phone'?: T;
   dateOfBirth?: T;
   lineage?: T;
+  involvement?: T;
+  coachingExperience?: T;
   position?: T;
   highSchool?: T;
   college?: T;

@@ -12,23 +12,23 @@ A three-phase CLI utility that transforms a Google Sheets CSV export into Payloa
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Schema Prep** - Add background field to Contacts collection
+- [x] **Phase 1: Schema Prep** - Add involvement and coachingExperience fields to Contacts collection ✓
 - [ ] **Phase 2: CSV Pipeline** - Parse CSV and transform raw values into Payload-ready records
 - [ ] **Phase 3: Import and Reporting** - Assemble CLI, execute upsert import, and report results
 
 ## Phase Details
 
-### Phase 1: Schema Prep
+### Phase 1: Schema Prep ✓ COMPLETE
 **Goal**: The Contacts collection schema supports every field the import will populate, so no row fails due to a missing field.
 **Depends on**: Nothing (first phase)
 **Requirements**: [SCHEMA-01]
 **Success Criteria** (what must be TRUE):
-  1. The `background` textarea field exists on the Contacts collection in the Payload schema
-  2. A migration is created and the local database reflects the new field without errors
-**Plans**: TBD
+  1. ✓ `involvement` textarea (visible when contactType = donor) exists on Contacts
+  2. ✓ `coachingExperience` textarea (visible when contactType = coach) exists on Contacts
+  3. ✓ Migration created (20260202_add_contacts_involvement_fields) and types regenerated
 
 Plans:
-- [ ] 01-01: Add background field to Contacts collection and generate migration
+- [x] 01-01: Add involvement and coachingExperience fields to Contacts collection and generate migration
 
 ### Phase 2: CSV Pipeline
 **Goal**: The import pipeline correctly reads a CSV file and transforms every raw value into a valid Payload record shape, verifiable via dry-run output before any data hits the database.
@@ -39,12 +39,12 @@ Plans:
   2. CSV column headers are mapped to the correct Payload field names for every field in the Contacts schema
   3. Duplicate columns (Date of Birth, Position, Town/State) are merged using the first non-empty value — no data is silently dropped
   4. Select fields are transformed to valid enum values: contactType and program from the interest column, lineage from free-text to canonical values, position from display names to lowercase identifiers
-  5. Date of birth strings are parsed into valid date format and coaching/involvement descriptions are combined into the background field
+  5. Date of birth strings are parsed into valid date format; coaching description maps to `coachingExperience`, involvement description maps to `involvement`
 **Plans**: TBD
 
 Plans:
 - [ ] 02-01: Implement CSV file reading, parsing, and column-to-field mapping
-- [ ] 02-02: Implement all data transformations (select fields, dates, duplicate merge, background)
+- [ ] 02-02: Implement all data transformations (select fields, dates, duplicate merge, involvement/coachingExperience)
 
 ### Phase 3: Import and Reporting
 **Goal**: The CLI tool runs end-to-end — reading, transforming, importing, and reporting — with resilient error handling and dry-run validation.
@@ -70,6 +70,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Schema Prep | 0/1 | Not started | - |
+| 1. Schema Prep | 1/1 | ✓ Complete | 2026-02-02 |
 | 2. CSV Pipeline | 0/2 | Not started | - |
 | 3. Import and Reporting | 0/2 | Not started | - |

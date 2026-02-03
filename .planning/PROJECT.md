@@ -15,6 +15,8 @@ A CLI tool to import contacts from CSV files (exported from Google Sheets) into 
 - ✓ Contacts collection with full schema (names, email, phone, address, player details, etc.) — existing
 - ✓ Payload CMS with Local API access — existing
 - ✓ D1 SQLite database with Contacts table — existing
+- ✓ `involvement` textarea on Contacts (visible when contactType = donor) — Phase 1
+- ✓ `coachingExperience` textarea on Contacts (visible when contactType = coach) — Phase 1
 
 ### Active
 
@@ -39,6 +41,7 @@ A CLI tool to import contacts from CSV files (exported from Google Sheets) into 
 
 **Contacts collection schema** (src/collections/Contacts.ts):
 - Basic info: firstName, lastName, email (unique), phone, dateOfBirth, lineage
+- Donor/Coach: involvement (donor only), coachingExperience (coach only)
 - Classification: contactType (player/donor/coach), program, citizenship
 - Player details: position, highSchool, college, graduationYear, professionalExperience, highlightTape
 - Address: nested group with street, city, state, zip, country
@@ -61,4 +64,4 @@ A CLI tool to import contacts from CSV files (exported from Google Sheets) into 
 | Payload Local API over REST | Better performance for bulk operations, no auth overhead | — Pending |
 
 ---
-*Last updated: 2026-02-02 after initialization*
+*Last updated: 2026-02-02 after Phase 1 (schema: involvement + coachingExperience fields shipped)*

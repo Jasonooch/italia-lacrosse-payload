@@ -7,7 +7,7 @@
 
 ### Schema Changes
 
-- [ ] **SCHEMA-01**: Add `background` textarea field to Contacts collection for coach/donor descriptions
+- [x] **SCHEMA-01**: Add `involvement` textarea (donor) and `coachingExperience` textarea (coach) to Contacts collection
 
 ### CSV Parsing
 
@@ -22,7 +22,7 @@
 - [ ] **XFORM-02**: Transform lineage values ("My great-grandparent(s)..." → "great-grandfather")
 - [ ] **XFORM-03**: Transform position values ("Attack" → "attack")
 - [ ] **XFORM-04**: Parse date of birth strings into date format
-- [ ] **XFORM-05**: Combine coaching/involvement descriptions into background field
+- [ ] **XFORM-05**: Map coaching description to `coachingExperience`, involvement description to `involvement`
 
 ### Import Execution
 
@@ -61,7 +61,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 1 - Schema Prep | Pending |
+| SCHEMA-01 | Phase 1 - Schema Prep | Complete |
 | CSV-01 | Phase 2 - CSV Pipeline | Pending |
 | CSV-02 | Phase 2 - CSV Pipeline | Pending |
 | CSV-03 | Phase 2 - CSV Pipeline | Pending |
@@ -87,4 +87,4 @@
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-02 after roadmap creation*
+*Last updated: 2026-02-02 after Phase 1 completion*

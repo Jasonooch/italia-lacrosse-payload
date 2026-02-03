@@ -181,6 +181,24 @@ export const Contacts: CollectionConfig = {
                 description: 'Closest Italian-born relative',
               },
             },
+            {
+              name: 'involvement',
+              label: 'Involvement',
+              type: 'textarea',
+              admin: {
+                description: 'How they would like to be involved with Italia Lacrosse',
+                condition: (data) => data.contactType === 'donor',
+              },
+            },
+            {
+              name: 'coachingExperience',
+              label: 'Coaching Experience',
+              type: 'textarea',
+              admin: {
+                description: 'Coaching background and experience',
+                condition: (data) => data.contactType === 'coach',
+              },
+            },
           ],
         },
         {
