@@ -61,30 +61,30 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 1 | Pending |
-| CSV-01 | Phase 2 | Pending |
-| CSV-02 | Phase 2 | Pending |
-| CSV-03 | Phase 2 | Pending |
-| CSV-04 | Phase 2 | Pending |
-| XFORM-01 | Phase 2 | Pending |
-| XFORM-02 | Phase 2 | Pending |
-| XFORM-03 | Phase 2 | Pending |
-| XFORM-04 | Phase 2 | Pending |
-| XFORM-05 | Phase 2 | Pending |
-| IMPORT-01 | Phase 3 | Pending |
-| IMPORT-02 | Phase 3 | Pending |
-| IMPORT-03 | Phase 3 | Pending |
-| IMPORT-04 | Phase 3 | Pending |
-| CLI-01 | Phase 3 | Pending |
-| CLI-02 | Phase 3 | Pending |
-| REPORT-01 | Phase 3 | Pending |
-| REPORT-02 | Phase 3 | Pending |
+| SCHEMA-01 | Phase 1 - Schema Prep | Pending |
+| CSV-01 | Phase 2 - CSV Pipeline | Pending |
+| CSV-02 | Phase 2 - CSV Pipeline | Pending |
+| CSV-03 | Phase 2 - CSV Pipeline | Pending |
+| CSV-04 | Phase 2 - CSV Pipeline | Pending |
+| XFORM-01 | Phase 2 - CSV Pipeline | Pending |
+| XFORM-02 | Phase 2 - CSV Pipeline | Pending |
+| XFORM-03 | Phase 2 - CSV Pipeline | Pending |
+| XFORM-04 | Phase 2 - CSV Pipeline | Pending |
+| XFORM-05 | Phase 2 - CSV Pipeline | Pending |
+| IMPORT-01 | Phase 3 - Import and Reporting | Pending |
+| IMPORT-02 | Phase 3 - Import and Reporting | Pending |
+| IMPORT-03 | Phase 3 - Import and Reporting | Pending |
+| IMPORT-04 | Phase 3 - Import and Reporting | Pending |
+| CLI-01 | Phase 3 - Import and Reporting | Pending |
+| CLI-02 | Phase 3 - Import and Reporting | Pending |
+| REPORT-01 | Phase 3 - Import and Reporting | Pending |
+| REPORT-02 | Phase 3 - Import and Reporting | Pending |
 
 **Coverage:**
 - v1 requirements: 18 total
 - Mapped to phases: 18
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-02 after initial definition*
+*Last updated: 2026-02-02 after roadmap creation*
