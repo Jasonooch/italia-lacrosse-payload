@@ -5,3 +5,7 @@
     background-color: #2673cc !important;
   }
 }
+
+[data-theme="light"] .btn--style-primary .btn--disabled {
+    --color: white !important;
+}
