@@ -1,5 +1,4 @@
 import type { CollectionConfig } from 'payload'
-import { adminOnly } from '@/access'
 
 import { authenticated } from '../access/authenticated'
 
@@ -12,10 +11,10 @@ export const Contacts: CollectionConfig = {
     group: 'Admin',
   },
   access: {
-    create: adminOnly,
-    delete: adminOnly,
+    create: authenticated,
+    delete: authenticated,
     read: authenticated,
-    update: adminOnly,
+    update: authenticated,
   },
   hooks: {
     beforeChange: [

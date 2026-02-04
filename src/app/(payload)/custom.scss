@@ -1,0 +1,7 @@
+[data-theme="light"] .btn--style-primary {
+  --bg-color: #0057b8;
+
+  &:hover {
+    background-color: #2673cc !important;
+  }
+}
