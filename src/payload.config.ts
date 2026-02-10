@@ -77,8 +77,14 @@ export default buildConfig({
     FormSubmissions,
   ],
   editor: lexicalEditor(),
-  serverURL:
-    process.env.FRONTEND_URL || 'https://italia-lacrosse-payload.jasonorlando14.workers.dev',
+  graphQL: {
+    disablePlaygroundInProduction: true,
+  },
+  serverURL: process.env.FRONTEND_URL || 'https://admin.italialacrosse.us',
+  csrf: [
+    'https://admin.italialacrosse.us',
+    'https://italia-lacrosse-payload.jasonorlando14.workers.dev',
+  ],
   secret: process.env.PAYLOAD_SECRET || '',
   email: resendAdapter({
     defaultFromAddress: 'noreply@italialacrosse.us',
