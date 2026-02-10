@@ -41,7 +41,12 @@
   background: hsl(240 3.7% 15.9%) !important;
 }
 
-.nav__link--active .nav__link-icon,
-.nav__link--active:hover .nav__link-icon {
+[data-theme="light"] .nav__link--active .nav__link-icon,
+[data-theme="light"] .nav__link--active:hover .nav__link-icon {
   color: #0057b8 !important;
+}
+
+[data-theme="dark"] .nav__link--active .nav__link-icon,
+[data-theme="dark"] .nav__link--active:hover .nav__link-icon {
+  color: lab(54.1736% 13.3369 -74.6839) !important;
 }
