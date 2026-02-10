@@ -44,7 +44,7 @@ See `contacts-import-template.csv` for the expected CSV structure.
 
 `position`: `attack`, `midfield`, `lsm`, `defense`, `goalie`, `faceoff`
 
-`lineage`: `italian-citizen`, `parent`, `grandfather`, `grandmother`, `great-grandfather`, `great-grandmother`, `not-sure`
+`lineage`: `italian-citizen`, `parent`, `grandparent`, `grandfather`, `grandmother`, `great-grandparent`, `great-grandfather`, `great-grandmother`, `not-sure`
 
 ## Tips
 
@@ -105,6 +105,22 @@ node tools/transform-import.js ~/Desktop/test-import.csv ./contacts-ready-to-imp
 - Formats dates (`4/19/1999` → `1999-04-19`)
 - Handles nested fields (`address.city`, `address.state`)
 - Skips rows without email addresses
+- Leaves unknown lineage answers blank and reports them, instead of forcing `not-sure`
+
+### Repair Existing Lineage from Original Form Export
+
+If a previous transform changed lineage values, replay lineage from the original Google Form CSV by email:
+
+```bash
+pnpm run reconcile:lineage -- <google-form-export.csv> --dry-run
+pnpm run reconcile:lineage -- <google-form-export.csv>
+```
+
+The script:
+- reads lineage from the original Form column
+- maps to valid Payload lineage values
+- updates matching contacts by `email`
+- re-syncs `citizenship` from lineage
 
 Then import the output file via the admin UI.
 

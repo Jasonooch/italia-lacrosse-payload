@@ -546,6 +546,7 @@ export interface Contact {
   contactType: 'player' | 'donor' | 'coach';
   program?: ('mens' | 'womens' | 'boys-youth' | 'girls-youth' | 'fundraising' | 'donor' | 'coaching') | null;
   citizenship?: ('citizen' | 'pending' | 'dnq' | 'not-a-citizen') | null;
+  status?: ('identified' | 'pending' | 'players-pool' | 'dnq') | null;
   createdBy?: (number | null) | User;
   /**
    * General notes about this contact
@@ -565,8 +566,10 @@ export interface Contact {
     | (
         | 'italian-citizen'
         | 'parent'
+        | 'grandparent'
         | 'grandfather'
         | 'grandmother'
+        | 'great-grandparent'
         | 'great-grandfather'
         | 'great-grandmother'
         | 'not-sure'
@@ -996,6 +999,7 @@ export interface ContactsSelect<T extends boolean = true> {
   contactType?: T;
   program?: T;
   citizenship?: T;
+  status?: T;
   createdBy?: T;
   notes?: T;
   firstName?: T;

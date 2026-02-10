@@ -2,6 +2,25 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../access/authenticated'
 
+const pendingLineageValues = new Set([
+  'parent',
+  'grandparent',
+  'grandfather',
+  'grandmother',
+  'great-grandparent',
+  'great-grandfather',
+  'great-grandmother',
+])
+
+const deriveCitizenshipFromLineage = (lineage?: string | null) => {
+  if (!lineage) return undefined
+  if (lineage === 'italian-citizen') return 'citizen'
+  if (pendingLineageValues.has(lineage)) return 'pending'
+  if (lineage === 'not-sure') return 'not-a-citizen'
+
+  return undefined
+}
+
 export const Contacts: CollectionConfig = {
   slug: 'contacts',
   timestamps: true,
@@ -19,8 +38,17 @@ export const Contacts: CollectionConfig = {
   hooks: {
     beforeChange: [
       ({ data, operation }) => {
-        if (operation === 'create') {
-          data.citizenship = data.lineage === 'italian-citizen' ? 'citizen' : 'not-a-citizen'
+        const computedCitizenship = deriveCitizenshipFromLineage(data.lineage)
+        const shouldAutofillCitizenship = data.citizenship == null || data.citizenship === ''
+
+        // Respect explicit CSV/admin values; only auto-fill when not provided.
+        if (computedCitizenship && shouldAutofillCitizenship) {
+          data.citizenship = computedCitizenship
+        }
+
+        // Backward compatibility for create calls that omit lineage entirely.
+        if (operation === 'create' && !data.lineage && shouldAutofillCitizenship) {
+          data.citizenship = 'not-a-citizen'
         }
         return data
       },
@@ -82,6 +110,20 @@ export const Contacts: CollectionConfig = {
         { label: 'Pending', value: 'pending' },
         { label: 'DNQ', value: 'dnq' },
         { label: 'Not A Citizen', value: 'not-a-citizen' },
+      ],
+      admin: {
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { label: 'Identified', value: 'identified' },
+        { label: 'Pending', value: 'pending' },
+        { label: 'Players Pool', value: 'players-pool' },
+        { label: 'DNQ', value: 'dnq' },
       ],
       admin: {
         position: 'sidebar',
@@ -181,8 +223,10 @@ export const Contacts: CollectionConfig = {
               options: [
                 { label: 'I am an Italian citizen', value: 'italian-citizen' },
                 { label: 'Parent', value: 'parent' },
+                { label: 'Grandparent', value: 'grandparent' },
                 { label: 'Grandfather', value: 'grandfather' },
                 { label: 'Grandmother', value: 'grandmother' },
+                { label: 'Great-Grandparent', value: 'great-grandparent' },
                 { label: 'Great-Grandfather', value: 'great-grandfather' },
                 { label: 'Great-Grandmother', value: 'great-grandmother' },
                 { label: "I'm not sure", value: 'not-sure' },

@@ -37,14 +37,27 @@ const mapContactType = (program) => {
 
 const mapLineage = (value) => {
   if (!value) return ''
-  const map = {
-    "I am an Italian citizen": 'italian-citizen',
-    "Parent": 'parent',
-    "My grandparent(s) are Italian citizen(s)": 'grandfather',
-    "My great-grandparent(s) are Italian citizen(s)": 'great-grandfather',
-    "I'm not sure": 'not-sure',
+
+  const normalized = value.toLowerCase().trim().replace(/\s+/g, ' ')
+
+  if (normalized.includes('i am an italian citizen')) return 'italian-citizen'
+  if (normalized === 'parent' || normalized.includes('my parent')) return 'parent'
+  if (normalized.includes('great-grandmother')) return 'great-grandmother'
+  if (normalized.includes('great-grandfather')) return 'great-grandfather'
+  if (normalized.includes('great-grandparent')) return 'great-grandparent'
+  if (normalized.includes('grandmother')) return 'grandmother'
+  if (normalized.includes('grandfather')) return 'grandfather'
+  if (normalized.includes('grandparent')) return 'grandparent'
+  if (
+    normalized === "i'm not sure" ||
+    normalized === 'im not sure' ||
+    normalized.includes('not sure')
+  ) {
+    return 'not-sure'
   }
-  return map[value] || 'not-sure'
+
+  // Keep unknown lineage blank so imports do not silently rewrite meaning.
+  return ''
 }
 
 const mapPosition = (value) => {
@@ -64,8 +77,17 @@ const mapPosition = (value) => {
 
 const mapCitizenship = (lineage) => {
   if (lineage === 'italian-citizen') return 'citizen'
-  if (lineage === 'parent' || lineage === 'grandfather' || lineage === 'grandmother' ||
-      lineage === 'great-grandfather' || lineage === 'great-grandmother') return 'pending'
+  if (
+    lineage === 'parent' ||
+    lineage === 'grandparent' ||
+    lineage === 'grandfather' ||
+    lineage === 'grandmother' ||
+    lineage === 'great-grandparent' ||
+    lineage === 'great-grandfather' ||
+    lineage === 'great-grandmother'
+  ) {
+    return 'pending'
+  }
   return '' // unknown — the beforeChange hook will set not-a-citizen on create
 }
 
@@ -198,6 +220,7 @@ const transformCSV = (inputPath, outputPath) => {
   // 31  State of Residence     (third duplicate — ignore)
 
   // Transform rows
+  const unmappedLineageValues = new Map()
   const outputRows = rows.map((row, idx) => {
     const interestRaw = (row[1] || '').trim()
     const isYouth = interestRaw.includes('Youth')
@@ -209,6 +232,9 @@ const transformCSV = (inputPath, outputPath) => {
 
     const lineageRaw = (row[6] || '').trim()
     const lineage = mapLineage(lineageRaw)
+    if (lineageRaw && !lineage) {
+      unmappedLineageValues.set(lineageRaw, (unmappedLineageValues.get(lineageRaw) || 0) + 1)
+    }
 
     // Youth players use columns 17–23; adults use 7–13
     const dob       = isYouth ? row[17] : row[7]
@@ -225,7 +251,7 @@ const transformCSV = (inputPath, outputPath) => {
       contactType: isCoach ? 'coach' : isDonor ? 'donor' : 'player',
       program:   mapProgram(interestRaw),
       citizenship: mapCitizenship(lineage),
-      lineage:   lineage,
+      lineage:   lineage || '',
       dateOfBirth: formatDate((dob || '').trim()),
       position:  mapPosition((position || '').trim()),
       highSchool: highSchool.trim(),
@@ -279,6 +305,14 @@ const transformCSV = (inputPath, outputPath) => {
   fs.writeFileSync(outputPath, outputLines.join('\n'), 'utf-8')
   console.log(`✅ Transformed ${outputRows.length} contacts`)
   console.log(`✅ Output written to ${outputPath}`)
+  if (unmappedLineageValues.size > 0) {
+    console.warn('\n⚠️ Unmapped lineage answers were found and left blank:')
+    ;[...unmappedLineageValues.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .forEach(([raw, count]) => {
+        console.warn(`  - "${raw}" (${count})`)
+      })
+  }
   console.log(`\nNext steps:`)
   console.log(`1. Review the output file: ${outputPath}`)
   console.log(`2. Go to http://localhost:3000/admin/collections/contacts`)

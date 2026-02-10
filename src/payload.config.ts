@@ -9,6 +9,7 @@ import { GetPlatformProxyOptions } from 'wrangler'
 import { r2Storage } from '@payloadcms/storage-r2'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { resendAdapter } from '@payloadcms/email-resend'
+import { payloadSidebar } from 'payload-sidebar-plugin'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
@@ -25,7 +26,9 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const realpath = (value: string) => (fs.existsSync(value) ? fs.realpathSync(value) : undefined)
 
-const isCLI = process.argv.some((value) => realpath(value)?.endsWith(path.join('payload', 'bin.js')))
+const isCLI = process.argv.some((value) =>
+  realpath(value)?.endsWith(path.join('payload', 'bin.js')),
+)
 const isProduction = process.env.NODE_ENV === 'production'
 const isBuild = process.argv.some((arg) => arg.includes('next') && arg.includes('build'))
 
@@ -74,7 +77,8 @@ export default buildConfig({
     FormSubmissions,
   ],
   editor: lexicalEditor(),
-  serverURL: process.env.FRONTEND_URL || 'https://italia-lacrosse-payload.jasonorlando14.workers.dev',
+  serverURL:
+    process.env.FRONTEND_URL || 'https://italia-lacrosse-payload.jasonorlando14.workers.dev',
   secret: process.env.PAYLOAD_SECRET || '',
   email: resendAdapter({
     defaultFromAddress: 'noreply@italialacrosse.us',
@@ -89,6 +93,28 @@ export default buildConfig({
     r2Storage({
       bucket: cloudflare.env.R2 as any,
       collections: { media: true },
+    }),
+    payloadSidebar({
+      groupOrder: {
+        Admin: 1,
+        Content: 2,
+        ungrouped: 3,
+        System: 4,
+      },
+      icons: {
+        posts: 'file-pen',
+        categories: 'folder-tree',
+        events: 'calendar',
+        teams: 'shield',
+        players: 'user',
+        coaches: 'graduation-cap',
+        contacts: 'contact',
+        users: 'users',
+        media: 'image',
+        forms: 'clipboard-list',
+        'form-submissions': 'inbox',
+      },
+      enablePinning: false,
     }),
     seoPlugin({
       collections: [],
@@ -107,7 +133,7 @@ function getCloudflareContextFromWrangler(): Promise<CloudflareContext> {
     ({ getPlatformProxy }) =>
       getPlatformProxy({
         environment: process.env.CLOUDFLARE_ENV,
-        remoteBindings: isProduction,
+        remoteBindings: isProduction && !isBuild,
       } satisfies GetPlatformProxyOptions),
   )
 }

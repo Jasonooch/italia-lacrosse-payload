@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  payload-sidebar-plugin:
+    hash: 4e0b5973f4ea0704d2ed2ac3a128b61bb7803a6cf3ab9d70cdabd91638b10313
+    path: patches/payload-sidebar-plugin.patch
+
 importers:
 
   .:
@@ -41,12 +46,18 @@ importers:
       graphql:
         specifier: ^16.8.1
         version: 16.12.0
+      lucide-react:
+        specifier: ^0.563.0
+        version: 0.563.0(react@19.2.1)
       next:
         specifier: 15.4.10
         version: 15.4.10(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4)
       payload:
         specifier: 3.73.0
         version: 3.73.0(graphql@16.12.0)(typescript@5.7.3)
+      payload-sidebar-plugin:
+        specifier: ^1.3.5
+        version: 1.3.5(patch_hash=4e0b5973f4ea0704d2ed2ac3a128b61bb7803a6cf3ab9d70cdabd91638b10313)(@payloadcms/translations@3.73.0)(@payloadcms/ui@3.73.0(@types/react@19.2.1)(monaco-editor@0.55.1)(next@15.4.10(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4))(payload@3.73.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.7.3))(lucide-react@0.563.0(react@19.2.1))(next@15.4.10(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4))(payload@3.73.0(graphql@16.12.0)(typescript@5.7.3))(react@19.2.1)
       react:
         specifier: 19.2.1
         version: 19.2.1
@@ -4319,6 +4330,11 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
+  lucide-react@0.563.0:
+    resolution: {integrity: sha512-8dXPB2GI4dI8jV4MgUDGBeLdGk8ekfqVZ0BdLcrRzocGgG75ltNEmWS+gE7uokKF/0oSUuczNDT+g9hFJ23FkA==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
@@ -4719,6 +4735,16 @@ packages:
   pathval@2.0.1:
     resolution: {integrity: sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==}
     engines: {node: '>= 14.16'}
+
+  payload-sidebar-plugin@1.3.5:
+    resolution: {integrity: sha512-EIcCnQjTYYr0l8FPzTSz+GFP03iqV4EKVjM3RWJkS0NO+Te3l87e43SowqpQflr3yuUZopCopdEWL/i+fkp+fA==}
+    peerDependencies:
+      '@payloadcms/translations': ^3.0.0
+      '@payloadcms/ui': ^3.0.0
+      lucide-react: '>=0.300.0'
+      next: ^14.0.0 || ^15.0.0
+      payload: ^3.0.0
+      react: ^18.0.0 || ^19.0.0
 
   payload@3.73.0:
     resolution: {integrity: sha512-yK1yTYB1zJqhbLirg03RdF35R4mxqZmnbc7kIeVn7BbuYbjo4Rd/C3RLpTBeTDxu4da2Q/TWojBSycBhz0PNDA==}
@@ -10943,6 +10969,10 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  lucide-react@0.563.0(react@19.2.1):
+    dependencies:
+      react: 19.2.1
+
   lz-string@1.5.0: {}
 
   magic-string@0.30.21:
@@ -11459,6 +11489,15 @@ snapshots:
   pathe@2.0.3: {}
 
   pathval@2.0.1: {}
+
+  payload-sidebar-plugin@1.3.5(patch_hash=4e0b5973f4ea0704d2ed2ac3a128b61bb7803a6cf3ab9d70cdabd91638b10313)(@payloadcms/translations@3.73.0)(@payloadcms/ui@3.73.0(@types/react@19.2.1)(monaco-editor@0.55.1)(next@15.4.10(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4))(payload@3.73.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.7.3))(lucide-react@0.563.0(react@19.2.1))(next@15.4.10(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4))(payload@3.73.0(graphql@16.12.0)(typescript@5.7.3))(react@19.2.1):
+    dependencies:
+      '@payloadcms/translations': 3.73.0
+      '@payloadcms/ui': 3.73.0(@types/react@19.2.1)(monaco-editor@0.55.1)(next@15.4.10(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4))(payload@3.73.0(graphql@16.12.0)(typescript@5.7.3))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.7.3)
+      lucide-react: 0.563.0(react@19.2.1)
+      next: 15.4.10(@babel/core@7.28.5)(@playwright/test@1.56.1)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(sass@1.77.4)
+      payload: 3.73.0(graphql@16.12.0)(typescript@5.7.3)
+      react: 19.2.1
 
   payload@3.73.0(graphql@16.12.0)(typescript@5.7.3):
     dependencies:

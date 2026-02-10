@@ -4,6 +4,7 @@ import * as migration_20260126_005809 from './20260126_005809';
 import * as migration_20260127_202600_recreate_forms_for_plugin from './20260127_202600_recreate_forms_for_plugin';
 import * as migration_20260128_134500_custom_forms from './20260128_134500_custom_forms';
 import * as migration_20260202_add_contacts_involvement_fields from './20260202_add_contacts_involvement_fields';
+import * as migration_20260209_191600_add_contacts_status from './20260209_191600_add_contacts_status';
 
 export const migrations = [
   {
@@ -35,5 +36,10 @@ export const migrations = [
     up: migration_20260202_add_contacts_involvement_fields.up,
     down: migration_20260202_add_contacts_involvement_fields.down,
     name: '20260202_add_contacts_involvement_fields'
+  },
+  {
+    up: migration_20260209_191600_add_contacts_status.up,
+    down: migration_20260209_191600_add_contacts_status.down,
+    name: '20260209_191600_add_contacts_status'
   },
 ];
