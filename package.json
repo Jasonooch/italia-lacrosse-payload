@@ -42,7 +42,6 @@
     "lucide-react": "^0.563.0",
     "next": "15.4.10",
     "payload": "3.73.0",
-    "payload-sidebar-plugin": "^1.3.5",
     "react": "19.2.1",
     "react-dom": "19.2.1"
   },
@@ -75,10 +74,7 @@
       "sharp",
       "esbuild",
       "unrs-resolver"
-    ],
-    "patchedDependencies": {
-      "payload-sidebar-plugin@1.3.5": "patches/payload-sidebar-plugin.patch"
-    }
+    ]
   },
   "cloudflare": {
     "bindings": {

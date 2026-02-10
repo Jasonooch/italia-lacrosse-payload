@@ -1,0 +1,21 @@
+.nav__link:hover,
+a.nav__link:focus-visible {
+  text-decoration: none;
+}
+
+.nav__link-indicator {
+  display: none;
+}
+
+.nav__link--active {
+  font-weight: 600;
+}
+
+[data-theme="light"] .nav__link--active svg {
+  color: #0057b8;
+}
+
+#nav-dashboard {
+  align-self: stretch;
+  margin-bottom: 10px;
+}

@@ -9,7 +9,6 @@ import { GetPlatformProxyOptions } from 'wrangler'
 import { r2Storage } from '@payloadcms/storage-r2'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { resendAdapter } from '@payloadcms/email-resend'
-import { payloadSidebar } from 'payload-sidebar-plugin'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
@@ -46,6 +45,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     components: {
+      Nav: './components/admin/Nav/Nav.tsx#default',
       graphics: {
         Logo: './components/admin/Logo.tsx#default',
         Icon: './components/admin/Icon.tsx#default',
@@ -99,28 +99,6 @@ export default buildConfig({
     r2Storage({
       bucket: cloudflare.env.R2 as any,
       collections: { media: true },
-    }),
-    payloadSidebar({
-      groupOrder: {
-        Admin: 1,
-        Content: 2,
-        ungrouped: 3,
-        System: 4,
-      },
-      icons: {
-        posts: 'file-pen',
-        categories: 'folder-tree',
-        events: 'calendar',
-        teams: 'shield',
-        players: 'user',
-        coaches: 'graduation-cap',
-        contacts: 'contact',
-        users: 'users',
-        media: 'image',
-        forms: 'clipboard-list',
-        'form-submissions': 'inbox',
-      },
-      enablePinning: false,
     }),
     seoPlugin({
       collections: [],
