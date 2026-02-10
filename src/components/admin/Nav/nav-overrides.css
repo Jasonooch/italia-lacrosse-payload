@@ -8,11 +8,15 @@ a.nav__link:focus-visible {
 }
 
 .nav__link--active {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 [data-theme="light"] .nav__link--active svg {
   color: #0057b8;
+}
+
+[data-theme="dark"] .nav__link--active svg {
+  color: lab(54.1736% 13.3369 -74.6839);
 }
 
 #nav-dashboard {
