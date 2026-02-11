@@ -44,6 +44,9 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: {
+      favicon: '/logo-lt.png',
+    },
     components: {
       Nav: './components/admin/Nav/Nav.tsx#default',
       graphics: {

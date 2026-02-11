@@ -19,6 +19,12 @@
   }
 }
 
+.nav-group__content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.25rem !important;
+}
+
 .nav__wrap {
   padding-inline: 8px !important;
 }
