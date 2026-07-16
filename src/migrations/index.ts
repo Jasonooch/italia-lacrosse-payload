@@ -5,6 +5,8 @@ import * as migration_20260127_202600_recreate_forms_for_plugin from './20260127
 import * as migration_20260128_134500_custom_forms from './20260128_134500_custom_forms';
 import * as migration_20260202_add_contacts_involvement_fields from './20260202_add_contacts_involvement_fields';
 import * as migration_20260209_191600_add_contacts_status from './20260209_191600_add_contacts_status';
+import * as migration_20260716_185517_add_posts_photo_attribution from './20260716_185517_add_posts_photo_attribution';
+import * as migration_20260716_194500_add_posts_v_photo_attribution from './20260716_194500_add_posts_v_photo_attribution';
 
 export const migrations = [
   {
@@ -41,5 +43,15 @@ export const migrations = [
     up: migration_20260209_191600_add_contacts_status.up,
     down: migration_20260209_191600_add_contacts_status.down,
     name: '20260209_191600_add_contacts_status'
+  },
+  {
+    up: migration_20260716_185517_add_posts_photo_attribution.up,
+    down: migration_20260716_185517_add_posts_photo_attribution.down,
+    name: '20260716_185517_add_posts_photo_attribution'
+  },
+  {
+    up: migration_20260716_194500_add_posts_v_photo_attribution.up,
+    down: migration_20260716_194500_add_posts_v_photo_attribution.down,
+    name: '20260716_194500_add_posts_v_photo_attribution'
   },
 ];
