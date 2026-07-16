@@ -79,6 +79,13 @@ export const Posts: CollectionConfig<'posts'> = {
               relationTo: 'media',
             },
             {
+              name: 'photoAttribution',
+              type: 'text',
+              admin: {
+                description: 'Photo credit/source for the hero image (e.g. "World Lacrosse")',
+              },
+            },
+            {
               name: 'content',
               type: 'richText',
               required: true,

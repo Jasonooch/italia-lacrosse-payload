@@ -14,6 +14,8 @@
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "import:contacts": "cross-env NODE_OPTIONS=--no-deprecation tsx tools/import-contacts.mjs",
     "import:contacts:prod": "cross-env NODE_ENV=production PAYLOAD_SCRIPT=true NODE_OPTIONS=--no-deprecation tsx tools/import-contacts.mjs",
+    "import:divhunt-posts": "cross-env NODE_OPTIONS=--no-deprecation tsx tools/import-divhunt-posts.mjs",
+    "import:divhunt-posts:prod": "cross-env NODE_ENV=production PAYLOAD_SCRIPT=true NODE_OPTIONS=--no-deprecation tsx tools/import-divhunt-posts.mjs",
     "reconcile:lineage": "cross-env NODE_OPTIONS=--no-deprecation tsx tools/reconcile-lineage-from-google-form.ts",
     "generate:types": "pnpm run generate:types:cloudflare && pnpm run generate:types:payload",
     "generate:types:cloudflare": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",

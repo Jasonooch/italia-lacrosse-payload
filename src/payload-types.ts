@@ -156,6 +156,10 @@ export interface Post {
   id: number;
   title: string;
   heroImage?: (number | null) | Media;
+  /**
+   * Photo credit/source for the hero image (e.g. "World Lacrosse")
+   */
+  photoAttribution?: string | null;
   content: {
     root: {
       type: string;
@@ -886,6 +890,7 @@ export interface PayloadMigration {
 export interface PostsSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
+  photoAttribution?: T;
   content?: T;
   relatedTeam?: T;
   relatedPosts?: T;
