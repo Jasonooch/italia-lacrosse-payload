@@ -33,7 +33,11 @@
   "r2_buckets": [
     {
       "binding": "R2",
-      "bucket_name": "italia-lacrosse-media","preview_bucket_name": "italia-lacrosse-media",
+      "bucket_name": "italia-lacrosse-media",
+      "preview_bucket_name": "italia-lacrosse-media",
+      // Like D1 above: local scripts run with remote bindings must hit the real
+      // bucket, not miniflare's local sandbox.
+      "remote": true,
     },
     // Create a R2 binding with the binding name "NEXT_INC_CACHE_R2_BUCKET"
     // {
