@@ -33,7 +33,7 @@ export const Posts: CollectionConfig<'posts'> = {
   access: {
     create: adminOnly,
     delete: adminOnly,
-    read: authenticated,
+    read: authenticatedOrPublished,
     update: adminOnly,
   },
   admin: {
