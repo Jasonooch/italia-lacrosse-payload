@@ -9,6 +9,7 @@
 
 @source './';
 @source '../../components/dashboard';
+@source '../../lib';
 
 @custom-variant dark (&:is(.dark *));
 
