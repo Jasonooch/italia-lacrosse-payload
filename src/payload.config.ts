@@ -86,6 +86,7 @@ export default buildConfig({
   csrf: [
     'https://admin.italialacrosse.us',
     'https://italia-lacrosse-payload.jasonorlando14.workers.dev',
+    'http://localhost:3000',
   ],
   secret: process.env.PAYLOAD_SECRET || '',
   email: resendAdapter({
