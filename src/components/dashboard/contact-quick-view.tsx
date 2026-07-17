@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import type { Contact } from '@/payload-types'
-import { Badge } from '@/components/dashboard/ui/badge'
 import { Button } from '@/components/dashboard/ui/button'
 import {
   Sheet,
@@ -13,11 +12,11 @@ import {
   SheetTitle,
 } from '@/components/dashboard/ui/sheet'
 import { CitizenshipBadge } from '@/components/dashboard/citizenship-badge'
+import { StatusBadge } from '@/components/dashboard/status-badge'
 import { CopyEmailButton } from '@/components/dashboard/copy-email-button'
 import {
   CONTACT_TYPE_LABELS,
   PROGRAM_LABELS,
-  STATUS_LABELS,
   getContactSubtitle,
   getInitials,
 } from '@/lib/contact-display'
@@ -60,7 +59,7 @@ export function ContactQuickView({
               </div>
               <div className="flex items-center gap-2 pt-1">
                 <CitizenshipBadge citizenship={contact.citizenship} />
-                {contact.status && <Badge variant="outline">{STATUS_LABELS[contact.status]}</Badge>}
+                {contact.status && <StatusBadge status={contact.status} />}
               </div>
             </SheetHeader>
 

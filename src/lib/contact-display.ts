@@ -43,6 +43,13 @@ export const STATUS_LABELS: Record<string, string> = {
   dnq: 'DNQ',
 }
 
+export const STATUS_STYLES: Record<string, string> = {
+  identified: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300',
+  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+  'players-pool': 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
+  dnq: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
+}
+
 export const LINEAGE_LABELS: Record<string, string> = {
   'italian-citizen': 'Is an Italian citizen',
   parent: 'Parent',

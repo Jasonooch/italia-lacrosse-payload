@@ -7,6 +7,7 @@ import { requireDashboardUser } from '@/lib/auth'
 import { Badge } from '@/components/dashboard/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card'
 import { CopyEmailButton } from '@/components/dashboard/copy-email-button'
+import { StatusBadge } from '@/components/dashboard/status-badge'
 import {
   CITIZENSHIP_LABELS,
   CITIZENSHIP_STYLES,
@@ -14,7 +15,6 @@ import {
   LINEAGE_LABELS,
   POSITION_LABELS,
   PROGRAM_LABELS,
-  STATUS_LABELS,
   getContactSubtitle,
   getInitials,
 } from '@/lib/contact-display'
@@ -91,7 +91,7 @@ export default async function ContactDetailPage({
           >
             {contact.citizenship ? CITIZENSHIP_LABELS[contact.citizenship] : 'Citizenship —'}
           </Badge>
-          {contact.status && <Badge variant="outline">{STATUS_LABELS[contact.status]}</Badge>}
+          {contact.status && <StatusBadge status={contact.status} />}
         </div>
       </div>
 
