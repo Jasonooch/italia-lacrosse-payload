@@ -87,12 +87,21 @@ export function getAnsweredQuestions(submission: JotformSubmission) {
     .sort((a, b) => a.order - b.order)
 }
 
+/** Jotform field types with a fixed, form-authored set of options — worth
+ * offering as a select in the filter UI instead of free text. */
+export const CHOICE_ANSWER_TYPES = new Set(['control_dropdown', 'control_radio', 'control_checkbox'])
+
 export interface SubmissionColumn {
   /** Stable identity across submissions — Jotform's field `name`, not the
    * (occasionally edited) display label. */
   key: string
   label: string
   order: number
+  /** Jotform's control type (e.g. control_dropdown) — used to decide whether
+   * this column has a fixed set of choices. Only trustworthy as "the type of
+   * whichever submission happened to be scanned first"; Jotform doesn't
+   * version field config, so this is best-effort like everything else here. */
+  type?: string
 }
 
 /** Real questions on a submission regardless of whether it was answered —
@@ -106,6 +115,7 @@ function getSubmissionQuestions(submission: JotformSubmission): SubmissionColumn
       key: a.name || a.text || 'answer',
       label: a.text || a.name || 'Answer',
       order: Number(a.order) || 0,
+      type: a.type,
     }))
 }
 

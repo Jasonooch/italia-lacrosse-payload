@@ -51,7 +51,7 @@ export default async function FormDetailPage({ params }: { params: Promise<{ id:
 
       <PageHeader title={form.title} description={form.description || 'Submissions for this form.'} />
 
-      <SubmissionsTable submissions={submissions} columns={columns} />
+      <SubmissionsTable submissions={submissions} columns={columns} formTitle={form.title} />
     </>
   )
 }
