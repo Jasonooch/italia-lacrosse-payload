@@ -1,7 +1,10 @@
 # Admin Dashboard — Discovery Context
 
 **Captured:** 2026-07-16
-**Status:** Foundation built and committed (commit `417da7a`, 2026-07-16 evening).
+**Status:** Foundation through status-color-coding is committed and deployed
+(through commit `1f05e79`). Filters/status-color/Jotform work from the 2026-07-17
+session **is built and verified but NOT committed or deployed** — see the
+⚠️ callout in Build Progress for the exact file list and next steps.
 See "Build Progress" below for what exists now — the discovery context below it is
 still accurate background, just no longer "nothing built yet."
 **Purpose:** Hand-off doc. Everything below came out of a discovery conversation and is
@@ -82,7 +85,108 @@ read and everyone manages contacts/rosters per the discovery notes below).
   (`nav-user.tsx`) now opens `/admin` with `target="_blank"` so Jason can reach
   the CMS without leaving the dashboard tab.
 
+**Also done (2026-07-17, continued — filters, status color, Jotform):**
+- **Contacts filters**: Type/Program/Position dropdowns above the Contacts table,
+  styled to match the reference CRM template's `opportunities-section.tsx` exactly —
+  `DropdownMenu` + `DropdownMenuRadioGroup`/`RadioItem` behind an outline button
+  (filter icon + label + chevron), not a native `<select>`. Filters are URL search
+  params (`?type=&program=&position=`), applied server-side via a Payload `where`
+  clause, threaded through pagination links so paging doesn't drop them. Added
+  `citizenship-badge.tsx` extraction while here (styling map was about to be
+  duplicated a third time).
+- **Contacts table restructured**: Program and Position are now real columns; the
+  subtitle under each name is now just contact Type (Player/Donor/Coach) instead of
+  the old combined position/program string.
+- **Status color-coded** to match Citizenship's palette: green (Players Pool), amber
+  (Pending), red (DNQ), blue (Identified — no citizenship equivalent). New shared
+  `StatusBadge` component, used in the contact detail page and quick-view drawer.
+- **Found and fixed a real production bug**: `CITIZENSHIP_STYLES` (and later
+  `STATUS_STYLES`) live in `src/lib/contact-display.ts`, which was outside
+  `globals.css`'s Tailwind `@source` scan (`./` and `../../components/dashboard`
+  only). The green/amber/red utility classes referenced only there were never
+  generated — badges rendered with the right class names but no actual color, live
+  in production. Fixed by adding `@source '../../lib'`. **This had already been
+  deployed** before being caught — worth remembering that `src/lib` utilities using
+  Tailwind classes are easy to silently break this way; check `globals.css`'s
+  `@source` list before adding new ones.
+- **Jotform integration (new, from scratch)**:
+  - `JOTFORM_API_KEY` added to `.env` (gitignored) and `.env.example` (empty
+    placeholder). Locked down `Forms`/`FormSubmissions` access to `authenticated`
+    staff — both had **no `access` key at all before**, meaning Payload's default
+    (open to anyone) applied; real signup PII would have been publicly readable via
+    the API once submissions existed.
+  - `tools/sync-jotform.mjs` (`pnpm sync:jotform`, `--dry-run` to preview, `:prod`
+    variant exists) — pulls all forms + submissions via Jotform's REST API,
+    upserts `forms` by `slug: jotform-<jotformId>` (no schema migration needed —
+    Jotform's own form ID doubles as the unique key) and dedupes `form-submissions`
+    in-memory against the Jotform submission ID stashed in the raw `data` blob (no
+    unique field exists on that collection either).
+  - **Ran against local dev**: 18 real forms, 1,183 real submissions pulled in.
+    This is real Jotform account data sitting in the local D1 SQLite file — not
+    synthetic like the contact seeder. Re-running the sync is safe (upsert, not
+    insert) but nothing purges deleted-on-Jotform submissions.
+  - `/dashboard/form-submissions` — table of forms with submission counts, click a
+    row → `/dashboard/form-submissions/[id]` — a genuine spreadsheet grid (styled to
+    match Jotform's own submissions table look, per Jason's reference screenshot):
+    one row per submission, one column per distinct question asked across that
+    form's submissions (columns derived dynamically, not hardcoded — every form has
+    different fields), horizontally scrollable, long headers truncate with an
+    ellipsis (native `title` tooltip shows the full question on hover). Row click
+    still opens a `SubmissionQuickView` drawer with the full Q&A for that submission
+    (useful for truncated/long free-text answers).
+  - `src/lib/jotform-display.ts` — all the "make Jotform's messy per-field-type raw
+    JSON presentable" logic: `formatAnswerValue` (generic reader for
+    string/array/phone/address/fullname/datetime answer shapes),
+    `getSubmissionColumns` (union of every question ever asked on a form, ordered),
+    `getSubmissionSummary` (best-effort name/email extraction for the drawer title —
+    every form names its fields differently, so this tries a few patterns rather
+    than assuming one), `formatSubmissionDate`. Datetime answers (birthdays, event
+    dates) are formatted `M-DD-YYYY` (single-digit month, no leading zero) per
+    Jason's request. Payment-widget answer types (`control_paypalcomplete`,
+    `control_paymentmethods`) and layout controls (`control_head`, `control_button`,
+    etc.) are filtered out everywhere — not shown in the grid or the drawer.
+  - **Found and fixed a second overflow bug** while building the wide grid: the
+    dashboard's shared layout — `SidebarInset` (`src/components/dashboard/ui/sidebar.tsx`)
+    and the content wrapper div in `src/app/(dashboard)/dashboard/layout.tsx` — was
+    missing `min-w-0`. A genuinely wide table (needs to scroll internally by design)
+    was pushing the *whole page* wider than the viewport, not just its own
+    `overflow-x-auto` container. Same root cause as the earlier Contacts grid
+    overflow bug, just in a flex layout instead of CSS grid this time. Fixed at the
+    shared-component level so it protects every future page, not just this one.
+
+**⚠️ UNCOMMITTED as of end of session (2026-07-17):** none of the filters/status-color/
+Jotform work above has been committed or deployed. Modified:
+`.env.example`, `package.json`, `src/app/(dashboard)/dashboard/form-submissions/page.tsx`,
+`src/app/(dashboard)/dashboard/layout.tsx`, `src/collections/FormSubmissions.ts`,
+`src/collections/Forms.ts`, `src/components/dashboard/ui/sidebar.tsx`. New:
+`src/app/(dashboard)/dashboard/form-submissions/[id]/`, `src/components/dashboard/forms-table.tsx`,
+`src/components/dashboard/submission-quick-view.tsx`, `src/components/dashboard/submissions-table.tsx`,
+`src/lib/jotform-display.ts`, `tools/sync-jotform.mjs`. (Also `.env` itself has
+`JOTFORM_API_KEY` set, but that file is gitignored and never committed.) Typecheck
+and lint are clean; verified in the browser against the real synced data. **Next
+session: commit (probably 2-3 logical commits, same pattern as before), push, then
+`pnpm run deploy`** — the citizenship/status color fix in particular is a real
+production bug fix that should ship soon.
+
 **Not done / open threads:**
+- **Jotform sync is manual, not automatic.** Jason explicitly asked for "just pull
+  in submissions right now to test everything out" rather than the webhook approach
+  originally recommended (see Decisions table) — new submissions won't appear until
+  someone runs `pnpm sync:jotform` again. A "Sync now" button in the dashboard UI,
+  or the originally-recommended webhook, are the natural next steps but weren't
+  asked for yet.
+- **Form submissions aren't linked to Contacts.** `Contacts.sourceFormSubmission`
+  already exists in the schema for this, but the Jotform sync script doesn't
+  create/match Contacts from submission data — that's a separate, unbuilt piece.
+  Also `Forms.formJSON` currently stores Jotform's `/user/forms` list-endpoint
+  response (title/id/count/url metadata), **not** the actual field/question
+  definitions (that's a different endpoint, `/form/{id}/questions`, never called) —
+  don't assume `formJSON` has the field list if building the native-form off-ramp.
+- **Column header labels can vary slightly submission-to-submission** if a Jotform
+  form's question text was edited over time (Jotform doesn't version field text).
+  `getSubmissionColumns` keys by field `name` and takes whichever `text` it sees
+  first when scanning newest-first — cosmetic only, data itself is unaffected, not
+  fixed.
 - `Events` collection is `adminOnly` on read (`src/collections/Events.ts`). The
   planned Calendar page merges Events with internal activities — as-is, a non-admin
   editor would see an empty calendar. Needs fixing before Calendar is built.
@@ -150,7 +254,7 @@ Everyone pitches in, but work splits along committees:
 | Starter template = **reference only**, not a second app | It's a standalone Next.js project with its own root layout/providers. Copy its sidebar/layout/shadcn patterns in; don't deploy it separately. |
 | **Calendar merges** new internal meetings + existing `Events` | One view for "what's coming up." |
 | **Projects have sub-tasks** | Asana-style: each project has a checklist w/ assignees + deadlines. |
-| **Jotform → webhook → `form-submissions`** (recommended, not yet built) | Keeps a permanent record in our DB, no rate limits on page load, and links to Contacts the way the schema already anticipates. Live API calls would lose all that. |
+| **Jotform → webhook → `form-submissions`** (originally recommended; what actually got built 2026-07-17 is a manual pull script instead, per Jason's "just test it out now" ask — webhook is still the better long-term answer, not yet built) | Keeps a permanent record in our DB, no rate limits on page load, and links to Contacts the way the schema already anticipates. Live API calls would lose all that. |
 | Native Forms are the later **off-ramp** from Jotform | `Forms` + `FormSubmissions` collections already exist. A native form writes to the same `form-submissions` table, so the dashboard needs no changes when Jotform goes away. |
 | **Do not tag meetings/camps/galas onto `Events`** | See "Events is tournament-only" below. Needs a separate collection. NOT finalized — Jason wanted to re-approach from needs first. |
 
@@ -170,7 +274,9 @@ Media, Forms, FormSubmissions
 - **No roster model exists at all.** Nothing tracks "which contacts are on which
   roster for which tournament." This is greenfield.
 - **No dues/fees data exists.** Greenfield.
-- **No Jotform integration exists** in the codebase. Submissions are not flowing in.
+- **Jotform integration exists as of 2026-07-17** (`tools/sync-jotform.mjs`, manual
+  pull, not a live webhook — see Build Progress below). 1,183 real submissions
+  across 18 forms are in local dev D1. Not yet linked to Contacts.
 - **`Events` is tournament-only.** It *requires* a `team` relationship and
   auto-generates its name from `year + team + eventType` → "2026 Men's World
   Championship". A training camp or gala has no national team and would break
@@ -189,7 +295,8 @@ Media, Forms, FormSubmissions
 - Show **citizenship status** when building a national roster. v1: display status
   only, no hard block — a human decides.
 - Clean solution for **dues tracking** (replacing the spreadsheet checkbox).
-- See **Jotform sign-ups** easily in the dashboard.
+- See **Jotform sign-ups** easily in the dashboard. *(Largely done as of 2026-07-17 —
+  see Build Progress. Still manual-sync only, no live webhook, no Contacts linking.)*
 - A **fundraising section** for that committee.
 
 ## Open Questions / Next Steps
