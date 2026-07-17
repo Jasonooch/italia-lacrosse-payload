@@ -7,6 +7,7 @@ import * as migration_20260202_add_contacts_involvement_fields from './20260202_
 import * as migration_20260209_191600_add_contacts_status from './20260209_191600_add_contacts_status';
 import * as migration_20260716_185517_add_posts_photo_attribution from './20260716_185517_add_posts_photo_attribution';
 import * as migration_20260716_194500_add_posts_v_photo_attribution from './20260716_194500_add_posts_v_photo_attribution';
+import * as migration_20260717_000000_add_projects from './20260717_000000_add_projects';
 
 export const migrations = [
   {
@@ -53,5 +54,10 @@ export const migrations = [
     up: migration_20260716_194500_add_posts_v_photo_attribution.up,
     down: migration_20260716_194500_add_posts_v_photo_attribution.down,
     name: '20260716_194500_add_posts_v_photo_attribution'
+  },
+  {
+    up: migration_20260717_000000_add_projects.up,
+    down: migration_20260717_000000_add_projects.down,
+    name: '20260717_000000_add_projects'
   },
 ];
