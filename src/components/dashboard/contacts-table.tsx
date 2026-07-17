@@ -1,7 +1,9 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { Eye, MoreVertical } from 'lucide-react'
 import type { Contact } from '@/payload-types'
-import { Badge } from '@/components/dashboard/ui/badge'
 import { Checkbox } from '@/components/dashboard/ui/checkbox'
 import {
   Table,
@@ -12,23 +14,9 @@ import {
   TableRow,
 } from '@/components/dashboard/ui/table'
 import { CopyEmailButton } from '@/components/dashboard/copy-email-button'
-import { CITIZENSHIP_LABELS, getContactSubtitle, getInitials } from '@/lib/contact-display'
-
-const CITIZENSHIP_STYLES: Record<string, string> = {
-  citizen: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300',
-  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-  dnq: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-  'not-a-citizen': 'bg-muted text-muted-foreground',
-}
-
-function CitizenshipBadge({ citizenship }: { citizenship: Contact['citizenship'] }) {
-  if (!citizenship) {
-    return <Badge className="bg-muted text-muted-foreground">—</Badge>
-  }
-  return (
-    <Badge className={CITIZENSHIP_STYLES[citizenship]}>{CITIZENSHIP_LABELS[citizenship]}</Badge>
-  )
-}
+import { CitizenshipBadge } from '@/components/dashboard/citizenship-badge'
+import { ContactQuickView } from '@/components/dashboard/contact-quick-view'
+import { getContactSubtitle, getInitials } from '@/lib/contact-display'
 
 export function ContactsTable({
   contacts,
@@ -44,6 +32,8 @@ export function ContactsTable({
   /** 1-indexed position of the first row on this page, as returned by Payload's find(). */
   pagingCounter: number
 }) {
+  const [quickViewContact, setQuickViewContact] = useState<Contact | null>(null)
+
   return (
     <div>
       <div className="rounded-lg border">
@@ -67,8 +57,12 @@ export function ContactsTable({
               </TableRow>
             ) : (
               contacts.map((contact) => (
-                <TableRow key={contact.id}>
-                  <TableCell>
+                <TableRow
+                  key={contact.id}
+                  onClick={() => setQuickViewContact(contact)}
+                  className="cursor-pointer"
+                >
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <Checkbox aria-label={`Select ${contact.fullName}`} />
                   </TableCell>
                   <TableCell>
@@ -87,15 +81,19 @@ export function ContactsTable({
                   <TableCell>
                     <CitizenshipBadge citizenship={contact.citizenship} />
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-3">
                       <CopyEmailButton email={contact.email} />
-                      {/* Detail view and overflow actions have no destination yet — shown
-                          inert rather than wired to a page that doesn't exist. */}
-                      <Eye
-                        className="size-4 cursor-not-allowed text-muted-foreground/40"
-                        aria-label="View contact (coming soon)"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => setQuickViewContact(contact)}
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                        aria-label={`View ${contact.fullName}`}
+                      >
+                        <Eye className="size-4" />
+                      </button>
+                      {/* Overflow actions have no destination yet — shown inert rather
+                          than wired to a menu that doesn't exist. */}
                       <MoreVertical
                         className="size-4 cursor-not-allowed text-muted-foreground/40"
                         aria-label="More actions (coming soon)"
@@ -108,6 +106,14 @@ export function ContactsTable({
           </TableBody>
         </Table>
       </div>
+
+      <ContactQuickView
+        contact={quickViewContact}
+        open={quickViewContact !== null}
+        onOpenChange={(open) => {
+          if (!open) setQuickViewContact(null)
+        }}
+      />
 
       <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
         <span>
