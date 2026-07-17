@@ -16,7 +16,12 @@ import {
 import { CopyEmailButton } from '@/components/dashboard/copy-email-button'
 import { CitizenshipBadge } from '@/components/dashboard/citizenship-badge'
 import { ContactQuickView } from '@/components/dashboard/contact-quick-view'
-import { getContactSubtitle, getInitials } from '@/lib/contact-display'
+import {
+  CONTACT_TYPE_LABELS,
+  POSITION_LABELS,
+  PROGRAM_LABELS,
+  getInitials,
+} from '@/lib/contact-display'
 
 export function ContactsTable({
   contacts,
@@ -24,6 +29,7 @@ export function ContactsTable({
   totalPages,
   totalDocs,
   pagingCounter,
+  filterQueryString,
 }: {
   contacts: Contact[]
   page: number
@@ -31,6 +37,8 @@ export function ContactsTable({
   totalDocs: number
   /** 1-indexed position of the first row on this page, as returned by Payload's find(). */
   pagingCounter: number
+  /** Current type/program/position filters, already URL-encoded, so page links don't drop them. */
+  filterQueryString: string
 }) {
   const [quickViewContact, setQuickViewContact] = useState<Contact | null>(null)
 
@@ -44,6 +52,8 @@ export function ContactsTable({
                 <Checkbox aria-label="Select all contacts on this page" />
               </TableHead>
               <TableHead>Contact</TableHead>
+              <TableHead>Program</TableHead>
+              <TableHead>Position</TableHead>
               <TableHead>Citizenship</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -51,7 +61,7 @@ export function ContactsTable({
           <TableBody>
             {contacts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   No contacts found.
                 </TableCell>
               </TableRow>
@@ -73,10 +83,16 @@ export function ContactsTable({
                       <div className="min-w-0">
                         <p className="truncate font-medium">{contact.fullName}</p>
                         <p className="truncate text-xs text-muted-foreground">
-                          {getContactSubtitle(contact)}
+                          {CONTACT_TYPE_LABELS[contact.contactType]}
                         </p>
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {contact.program ? PROGRAM_LABELS[contact.program] : '—'}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {contact.position ? POSITION_LABELS[contact.position] : '—'}
                   </TableCell>
                   <TableCell>
                     <CitizenshipBadge citizenship={contact.citizenship} />
@@ -122,7 +138,7 @@ export function ContactsTable({
             : `Showing ${pagingCounter} to ${pagingCounter + contacts.length - 1} of ${totalDocs} contacts`}
         </span>
         <div className="flex items-center gap-1">
-          <PageLink page={page - 1} disabled={page <= 1}>
+          <PageLink page={page - 1} disabled={page <= 1} filterQueryString={filterQueryString}>
             Previous
           </PageLink>
           {getPageWindow(page, totalPages).map((p, i) =>
@@ -131,12 +147,21 @@ export function ContactsTable({
                 …
               </span>
             ) : (
-              <PageLink key={p} page={p} active={p === page}>
+              <PageLink
+                key={p}
+                page={p}
+                active={p === page}
+                filterQueryString={filterQueryString}
+              >
                 {p}
               </PageLink>
             ),
           )}
-          <PageLink page={page + 1} disabled={page >= totalPages}>
+          <PageLink
+            page={page + 1}
+            disabled={page >= totalPages}
+            filterQueryString={filterQueryString}
+          >
             Next
           </PageLink>
         </div>
@@ -150,11 +175,13 @@ function PageLink({
   children,
   active,
   disabled,
+  filterQueryString,
 }: {
   page: number
   children: React.ReactNode
   active?: boolean
   disabled?: boolean
+  filterQueryString: string
 }) {
   const className = active
     ? 'rounded-md bg-primary px-3 py-1.5 text-primary-foreground'
@@ -164,8 +191,10 @@ function PageLink({
     return <span className="rounded-md px-3 py-1.5 text-muted-foreground/40">{children}</span>
   }
 
+  const href = filterQueryString ? `?page=${page}&${filterQueryString}` : `?page=${page}`
+
   return (
-    <Link href={`?page=${page}`} className={className}>
+    <Link href={href} className={className}>
       {children}
     </Link>
   )
