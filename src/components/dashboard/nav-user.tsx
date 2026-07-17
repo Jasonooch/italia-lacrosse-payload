@@ -67,7 +67,7 @@ export function NavUser({ name, email }: { name: string; email: string }) {
               */}
               {/* eslint-disable @next/next/no-html-link-for-pages */}
               <DropdownMenuItem asChild>
-                <a href="/admin">
+                <a href="/admin" target="_blank" rel="noopener noreferrer">
                   <Settings />
                   Payload admin
                 </a>
