@@ -1,5 +1,7 @@
 import { CollectionConfig } from 'payload'
 
+import { authenticated } from '../access/authenticated'
+
 export const Forms: CollectionConfig = {
   slug: 'forms',
   admin: {
@@ -8,6 +10,9 @@ export const Forms: CollectionConfig = {
   },
   access: {
     read: () => true, // Public forms
+    create: authenticated,
+    update: authenticated,
+    delete: authenticated,
   },
   fields: [
     {

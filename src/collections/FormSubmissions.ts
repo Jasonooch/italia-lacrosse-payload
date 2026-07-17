@@ -1,10 +1,18 @@
 import { CollectionConfig } from 'payload'
 
+import { authenticated } from '../access/authenticated'
+
 export const FormSubmissions: CollectionConfig = {
   slug: 'form-submissions',
   admin: {
     useAsTitle: 'form',
     group: 'Admin',
+  },
+  access: {
+    create: authenticated,
+    delete: authenticated,
+    read: authenticated,
+    update: authenticated,
   },
   fields: [
     {
