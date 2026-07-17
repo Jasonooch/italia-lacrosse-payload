@@ -78,6 +78,7 @@ export interface Config {
     media: Media;
     forms: Form;
     'form-submissions': FormSubmission;
+    projects: Project;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
@@ -102,6 +103,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
+    projects: ProjectsSelect<false> | ProjectsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -679,6 +681,35 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects".
+ */
+export interface Project {
+  id: number;
+  title: string;
+  description?: string | null;
+  status: 'not-started' | 'in-progress' | 'completed' | 'on-hold';
+  startDate?: string | null;
+  dueDate?: string | null;
+  /**
+   * The tournament/event this project supports, if any.
+   */
+  event?: (number | null) | Event;
+  owner?: (number | null) | User;
+  team?: (number | User)[] | null;
+  milestones?:
+    | {
+        title: string;
+        status: 'not-started' | 'in-progress' | 'completed';
+        dueDate?: string | null;
+        assignee?: (number | null) | User;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -836,6 +867,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'form-submissions';
         value: number | FormSubmission;
+      } | null)
+    | ({
+        relationTo: 'projects';
+        value: number | Project;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -1195,6 +1230,31 @@ export interface FormsSelect<T extends boolean = true> {
 export interface FormSubmissionsSelect<T extends boolean = true> {
   form?: T;
   data?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects_select".
+ */
+export interface ProjectsSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  status?: T;
+  startDate?: T;
+  dueDate?: T;
+  event?: T;
+  owner?: T;
+  team?: T;
+  milestones?:
+    | T
+    | {
+        title?: T;
+        status?: T;
+        dueDate?: T;
+        assignee?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

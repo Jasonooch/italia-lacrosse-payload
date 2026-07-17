@@ -20,6 +20,7 @@ import { Events } from './collections/Events'
 import { Contacts } from './collections/Contacts'
 import { Forms } from './collections/Forms'
 import { FormSubmissions } from './collections/FormSubmissions'
+import { Projects } from './collections/Projects'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -75,6 +76,7 @@ export default buildConfig({
     Media,
     Forms,
     FormSubmissions,
+    Projects,
   ],
   editor: lexicalEditor(),
   graphQL: {
