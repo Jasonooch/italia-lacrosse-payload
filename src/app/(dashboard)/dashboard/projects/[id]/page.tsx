@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Pencil } from 'lucide-react'
 import type { Event, User } from '@/payload-types'
 import { requireDashboardUser } from '@/lib/auth'
-import { StatusBadge } from '@/components/dashboard/project-status-badge'
+import { ProjectStatusControl } from '@/components/dashboard/project-status-control'
 import { ProjectDetailsCard, ProjectProgressCard } from '@/components/dashboard/project-sidebar'
 import { ProjectTeamCard } from '@/components/dashboard/project-team-card'
 import { NewMilestoneButton, ProjectMilestones } from '@/components/dashboard/project-milestones'
@@ -57,7 +57,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight">{project.title}</h1>
-            <StatusBadge status={project.status} />
+            <ProjectStatusControl projectId={project.id} status={project.status} />
           </div>
           {project.description && (
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{project.description}</p>
@@ -76,7 +76,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <ProjectMilestones projectId={project.id} milestones={milestones} />
+          <ProjectMilestones projectId={project.id} milestones={milestones} users={allUsers} />
         </div>
         <div className="space-y-6">
           <ProjectProgressCard milestones={milestones} />

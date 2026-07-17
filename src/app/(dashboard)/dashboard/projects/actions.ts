@@ -170,10 +170,29 @@ export async function removeTeamMember(projectId: number, userId: number) {
   revalidatePath('/dashboard/projects')
 }
 
-export async function addMilestone(
-  projectId: number,
-  input: { title: string; dueDate?: string | null; assignee?: number | null },
-) {
+export async function updateProjectStatus(projectId: number, status: ProjectStatus) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  await payload.update({
+    collection: 'projects',
+    id: projectId,
+    data: { status },
+    user,
+    overrideAccess: false,
+  })
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+  revalidatePath('/dashboard/projects')
+}
+
+export interface MilestoneInput {
+  title: string
+  dueDate?: string | null
+  assignee?: number | null
+}
+
+export async function addMilestone(projectId: number, input: MilestoneInput) {
   const user = await requireDashboardUser()
   const payload = await getPayload({ config })
 
@@ -199,6 +218,110 @@ export async function addMilestone(
     collection: 'projects',
     id: projectId,
     data: { milestones },
+    user,
+    overrideAccess: false,
+  })
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+  revalidatePath('/dashboard/projects')
+}
+
+export async function updateMilestone(
+  projectId: number,
+  milestoneId: string,
+  input: MilestoneInput,
+) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  const project = await payload.findByID({
+    collection: 'projects',
+    id: projectId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+  })
+
+  const milestones = (project.milestones ?? []).map((milestone) =>
+    milestone.id === milestoneId
+      ? {
+          ...milestone,
+          title: input.title,
+          dueDate: input.dueDate || null,
+          assignee: input.assignee || null,
+        }
+      : milestone,
+  )
+
+  await payload.update({
+    collection: 'projects',
+    id: projectId,
+    data: { milestones },
+    user,
+    overrideAccess: false,
+  })
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+  revalidatePath('/dashboard/projects')
+}
+
+export async function deleteMilestone(projectId: number, milestoneId: string) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  const project = await payload.findByID({
+    collection: 'projects',
+    id: projectId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+  })
+
+  const milestones = (project.milestones ?? []).filter(
+    (milestone) => milestone.id !== milestoneId,
+  )
+
+  await payload.update({
+    collection: 'projects',
+    id: projectId,
+    data: { milestones },
+    user,
+    overrideAccess: false,
+  })
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+  revalidatePath('/dashboard/projects')
+}
+
+/** Persist a new milestone order. `orderedIds` is the full set of milestone
+ * ids in the desired order; any id not present is dropped, and unknown ids are
+ * ignored, so a stale client can't corrupt the array. */
+export async function reorderMilestones(projectId: number, orderedIds: string[]) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  const project = await payload.findByID({
+    collection: 'projects',
+    id: projectId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+  })
+
+  const current = project.milestones ?? []
+  const byId = new Map(current.map((milestone) => [milestone.id, milestone]))
+  const reordered = orderedIds
+    .map((id) => byId.get(id))
+    .filter((milestone): milestone is (typeof current)[number] => Boolean(milestone))
+
+  // Guard against a mismatched client payload: only write when the reordered
+  // set is a pure permutation of what's stored.
+  if (reordered.length !== current.length) return
+
+  await payload.update({
+    collection: 'projects',
+    id: projectId,
+    data: { milestones: reordered },
     user,
     overrideAccess: false,
   })

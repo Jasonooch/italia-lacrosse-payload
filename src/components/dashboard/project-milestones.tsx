@@ -1,7 +1,24 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { Plus } from 'lucide-react'
+import { useEffect, useState, useTransition } from 'react'
+import { GripVertical, MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react'
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { Project, User } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
 import {
@@ -10,7 +27,14 @@ import {
   formatProjectDate,
   type MilestoneStatus,
 } from '@/lib/project-display'
-import { addMilestone, updateMilestoneStatus } from '@/app/(dashboard)/dashboard/projects/actions'
+import {
+  addMilestone,
+  deleteMilestone,
+  reorderMilestones,
+  updateMilestone,
+  updateMilestoneStatus,
+  type MilestoneInput,
+} from '@/app/(dashboard)/dashboard/projects/actions'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { Button } from '@/components/dashboard/ui/button'
 import { Input } from '@/components/dashboard/ui/input'
@@ -25,6 +49,13 @@ import {
 
 type Milestone = NonNullable<Project['milestones']>[number]
 
+const UNASSIGNED = 'unassigned'
+
+function assigneeId(assignee: Milestone['assignee']): number | null {
+  if (assignee == null) return null
+  return typeof assignee === 'object' ? assignee.id : assignee
+}
+
 function AssigneeAvatar({ assignee }: { assignee: Milestone['assignee'] }) {
   if (!assignee || typeof assignee === 'number') return null
   return (
@@ -34,8 +65,198 @@ function AssigneeAvatar({ assignee }: { assignee: Milestone['assignee'] }) {
   )
 }
 
-function MilestoneRow({ projectId, milestone }: { projectId: number; milestone: Milestone }) {
+/** Shared title / due date / assignee fields for creating and editing a
+ * milestone. Owns its own field state and hands finished values back on save. */
+function MilestoneForm({
+  users,
+  initial,
+  submitLabel,
+  isPending,
+  onSubmit,
+}: {
+  users: User[]
+  initial?: { title: string; dueDate: string; assignee: string }
+  submitLabel: string
+  isPending: boolean
+  onSubmit: (values: MilestoneInput) => void
+}) {
+  const [title, setTitle] = useState(initial?.title ?? '')
+  const [dueDate, setDueDate] = useState(initial?.dueDate ?? '')
+  const [assignee, setAssignee] = useState(initial?.assignee ?? UNASSIGNED)
+
+  function handleSubmit() {
+    if (!title.trim()) return
+    onSubmit({
+      title: title.trim(),
+      dueDate: dueDate || null,
+      assignee: assignee === UNASSIGNED ? null : Number(assignee),
+    })
+  }
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="mb-1 block text-xs text-muted-foreground">Title</label>
+        <Input
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Milestone name"
+          autoFocus
+        />
+      </div>
+      <div>
+        <label className="mb-1 block text-xs text-muted-foreground">Due date</label>
+        <Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
+      </div>
+      <div>
+        <label className="mb-1 block text-xs text-muted-foreground">Assignee</label>
+        <Select value={assignee} onValueChange={setAssignee}>
+          <SelectTrigger className="w-full" size="sm">
+            <SelectValue placeholder="Unassigned" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
+            {users.map((user) => (
+              <SelectItem key={user.id} value={String(user.id)}>
+                {user.name || user.email}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button className="w-full" size="sm" onClick={handleSubmit} disabled={!title.trim() || isPending}>
+        {submitLabel}
+      </Button>
+    </div>
+  )
+}
+
+type ActionMode = 'menu' | 'edit' | 'delete'
+
+/** Kebab menu sitting to the right of the status pill. Opens an inline menu
+ * that switches between editing the milestone and confirming deletion. */
+function MilestoneActions({
+  projectId,
+  milestone,
+  users,
+}: {
+  projectId: number
+  milestone: Milestone
+  users: User[]
+}) {
+  const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<ActionMode>('menu')
   const [isPending, startTransition] = useTransition()
+
+  function close() {
+    setOpen(false)
+  }
+
+  // Reset back to the menu view whenever the popover reopens.
+  function handleOpenChange(next: boolean) {
+    setOpen(next)
+    if (next) setMode('menu')
+  }
+
+  function handleEdit(values: MilestoneInput) {
+    startTransition(async () => {
+      await updateMilestone(projectId, milestone.id!, values)
+      close()
+    })
+  }
+
+  function handleDelete() {
+    startTransition(async () => {
+      await deleteMilestone(projectId, milestone.id!)
+      close()
+    })
+  }
+
+  return (
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 shrink-0 text-muted-foreground"
+          aria-label="Milestone actions"
+        >
+          <MoreVertical className="size-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className={mode === 'menu' ? 'w-40 p-1' : 'w-72'}>
+        {mode === 'menu' && (
+          <div className="flex flex-col">
+            <button
+              type="button"
+              onClick={() => setMode('edit')}
+              className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
+            >
+              <Pencil className="size-4 text-muted-foreground" />
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('delete')}
+              className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="size-4" />
+              Delete
+            </button>
+          </div>
+        )}
+
+        {mode === 'edit' && (
+          <>
+            <p className="mb-3 text-sm font-semibold">Edit Milestone</p>
+            <MilestoneForm
+              users={users}
+              submitLabel="Save Changes"
+              isPending={isPending}
+              initial={{
+                title: milestone.title,
+                dueDate: milestone.dueDate ? milestone.dueDate.slice(0, 10) : '',
+                assignee: assigneeId(milestone.assignee)?.toString() ?? UNASSIGNED,
+              }}
+              onSubmit={handleEdit}
+            />
+          </>
+        )}
+
+        {mode === 'delete' && (
+          <>
+            <p className="text-sm font-medium">Delete this milestone?</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              &ldquo;{milestone.title}&rdquo; will be permanently removed.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setMode('menu')} disabled={isPending}>
+                Cancel
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleDelete} disabled={isPending}>
+                Delete
+              </Button>
+            </div>
+          </>
+        )}
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function SortableMilestoneRow({
+  projectId,
+  milestone,
+  users,
+}: {
+  projectId: number
+  milestone: Milestone
+  users: User[]
+}) {
+  const [isPending, startTransition] = useTransition()
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: milestone.id!,
+  })
   const dueDate = formatProjectDate(milestone.dueDate)
 
   function handleStatusChange(status: string) {
@@ -45,7 +266,23 @@ function MilestoneRow({ projectId, milestone }: { projectId: number; milestone: 
   }
 
   return (
-    <div className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0">
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={
+        'flex items-center gap-2 border-b bg-card px-2 py-3 last:border-b-0 ' +
+        (isDragging ? 'relative z-10 rounded-md shadow-md' : '')
+      }
+    >
+      <button
+        type="button"
+        className="shrink-0 cursor-grab touch-none text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
+        aria-label="Drag to reorder"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="size-4" />
+      </button>
       <span
         className={
           'size-2.5 shrink-0 rounded-full ' +
@@ -79,28 +316,18 @@ function MilestoneRow({ projectId, milestone }: { projectId: number; milestone: 
           )}
         </SelectContent>
       </Select>
+      <MilestoneActions projectId={projectId} milestone={milestone} users={users} />
     </div>
   )
 }
 
 export function NewMilestoneButton({ projectId, users }: { projectId: number; users: User[] }) {
   const [open, setOpen] = useState(false)
-  const [title, setTitle] = useState('')
-  const [dueDate, setDueDate] = useState('')
-  const [assignee, setAssignee] = useState('')
   const [isPending, startTransition] = useTransition()
 
-  function handleSubmit() {
-    if (!title.trim()) return
+  function handleSubmit(values: MilestoneInput) {
     startTransition(async () => {
-      await addMilestone(projectId, {
-        title: title.trim(),
-        dueDate: dueDate || null,
-        assignee: assignee ? Number(assignee) : null,
-      })
-      setTitle('')
-      setDueDate('')
-      setAssignee('')
+      await addMilestone(projectId, values)
       setOpen(false)
     })
   }
@@ -113,36 +340,18 @@ export function NewMilestoneButton({ projectId, users }: { projectId: number; us
           New Milestone
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-4">
+      <PopoverContent align="end" className="w-80">
         <p className="mb-3 text-sm font-semibold">New Milestone</p>
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs text-muted-foreground">Title</label>
-            <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Milestone name" />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-muted-foreground">Due date</label>
-            <Input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs text-muted-foreground">Assignee</label>
-            <Select value={assignee} onValueChange={setAssignee}>
-              <SelectTrigger className="w-full" size="sm">
-                <SelectValue placeholder="Unassigned" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map((user) => (
-                  <SelectItem key={user.id} value={String(user.id)}>
-                    {user.name || user.email}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <Button className="mt-4 w-full" size="sm" onClick={handleSubmit} disabled={!title.trim() || isPending}>
-          Add Milestone
-        </Button>
+        {/* Remount on open so fields reset between adds. */}
+        {open && (
+          <MilestoneForm
+            key="new"
+            users={users}
+            submitLabel="Add Milestone"
+            isPending={isPending}
+            onSubmit={handleSubmit}
+          />
+        )}
       </PopoverContent>
     </Popover>
   )
@@ -173,19 +382,72 @@ function ViewTabs({ completed, total }: { completed: number; total: number }) {
   )
 }
 
-export function ProjectMilestones({ projectId, milestones }: { projectId: number; milestones: Milestone[] }) {
-  const completed = milestones.filter((milestone) => milestone.status === 'completed').length
+export function ProjectMilestones({
+  projectId,
+  milestones,
+  users,
+}: {
+  projectId: number
+  milestones: Milestone[]
+  users: User[]
+}) {
+  const [items, setItems] = useState(milestones)
+  const [, startTransition] = useTransition()
+
+  // Re-sync local order whenever the server sends a different set/content of
+  // milestones (add, edit, delete, status change, or a persisted reorder).
+  const signature = milestones
+    .map((m) => `${m.id}:${m.title}:${m.status}:${m.dueDate ?? ''}:${assigneeId(m.assignee) ?? ''}`)
+    .join('|')
+  useEffect(() => {
+    setItems(milestones)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature])
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = items.findIndex((m) => m.id === active.id)
+    const newIndex = items.findIndex((m) => m.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const next = arrayMove(items, oldIndex, newIndex)
+    setItems(next)
+    startTransition(async () => {
+      await reorderMilestones(
+        projectId,
+        next.map((m) => m.id!),
+      )
+    })
+  }
+
+  const completed = items.filter((milestone) => milestone.status === 'completed').length
 
   return (
     <div>
-      <ViewTabs completed={completed} total={milestones.length} />
+      <ViewTabs completed={completed} total={items.length} />
       <div className="rounded-lg border">
-        {milestones.length === 0 ? (
+        {items.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">No milestones yet.</p>
         ) : (
-          milestones.map((milestone) => (
-            <MilestoneRow key={milestone.id} projectId={projectId} milestone={milestone} />
-          ))
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items.map((m) => m.id!)} strategy={verticalListSortingStrategy}>
+              {items.map((milestone) => (
+                <SortableMilestoneRow
+                  key={milestone.id}
+                  projectId={projectId}
+                  milestone={milestone}
+                  users={users}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>

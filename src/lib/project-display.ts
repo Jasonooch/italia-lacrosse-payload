@@ -41,5 +41,12 @@ export function formatProjectDate(value?: string | null) {
   if (!value) return null
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return null
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+  // Dates are stored as midnight UTC (date-only semantics), so format in UTC to
+  // avoid shifting the calendar day backward in timezones behind UTC.
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
 }
