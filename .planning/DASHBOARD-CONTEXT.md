@@ -1,9 +1,57 @@
 # Admin Dashboard — Discovery Context
 
 **Captured:** 2026-07-16
-**Status:** Pre-planning. No dashboard code written yet.
+**Status:** Foundation built and committed (commit `417da7a`, 2026-07-16 evening).
+See "Build Progress" below for what exists now — the discovery context below it is
+still accurate background, just no longer "nothing built yet."
 **Purpose:** Hand-off doc. Everything below came out of a discovery conversation and is
 not derivable from the codebase. Read this before planning the dashboard.
+
+## Build Progress (updated 2026-07-16 evening)
+
+**Live at `/dashboard`.** Auth-gated on the same Payload session (`Boolean(user)`,
+matching the admin's own rule — no role check, since `Users.roles` is admin-only on
+read and everyone manages contacts/rosters per the discovery notes below).
+
+**Done:**
+- Route group `src/app/(dashboard)/` — Tailwind v4 + shadcn scoped to this tree only
+  (`source(none)` + explicit `@source` paths in `globals.css`), so the Payload admin
+  and public `(frontend)` are untouched. Verified visually — admin UI unaffected.
+- Sidebar shell, all 5 nav sections routed (Overview real, others honest placeholders
+  naming what's missing rather than faking functionality).
+- Styled to match Jason's Paper mockup: active nav pill `#F5F6F8` bg / `#0057B8` text,
+  semibold (not bold) on the active item, "Admin Panel" subtitle, no hover color change.
+- **Contacts table** — real Payload data via Local API (`overrideAccess: false`).
+  Row = avatar initials + name + role-specific subtitle (`"Attack - Men's"` for
+  players/coaches with program, bare `"Donor"` for donors — program doesn't mean the
+  same thing for them). Citizenship badge. Copy-email action with a legacy
+  `execCommand` fallback (a real bug was caught and fixed here: the original
+  Clipboard-API-only version silently failed with an unhandled rejection when
+  permission was denied). Windowed pagination (`1 … 4 5 6 … 42`), not every page
+  number — matters once this points at 1,800 real contacts.
+- Light/dark/system theme toggle (`next-themes`), verified deterministically via DOM
+  (`class="light"`/`"dark"`), not just screenshots — the browser automation tool in
+  this session proved unreliable for pixel-coordinate clicks.
+- `pnpm seed:dev-contacts` — local-only synthetic contact seeder (48 records, refuses
+  to run with `NODE_ENV=production`) so the table could be built/verified without
+  touching the real ~1,800 contacts. Re-runnable; only touches its own
+  `@dev-seed.test` rows.
+
+**Not done / open threads:**
+- "View contact" and "more actions" icons are visually present but inert — no detail
+  page exists yet.
+- `Events` collection is `adminOnly` on read (`src/collections/Events.ts`). The
+  planned Calendar page merges Events with internal activities — as-is, a non-admin
+  editor would see an empty calendar. Needs fixing before Calendar is built.
+- `/` still redirects to `/admin` (`src/app/(frontend)/page.tsx`), not `/dashboard`.
+  Suggested one-line change, not yet made — Jason's call on whether the dashboard
+  should be the actual front door.
+- `.planning/STATE.md` and `ROADMAP.md` still track the February CSV Import Tool as
+  current work. They were never updated to reflect the dashboard project and are
+  stale as of this session — worth a GSD re-plan if the team wants to use that
+  workflow for the dashboard going forward, but that wasn't done tonight.
+- Roster spreadsheet still not shared — still the real blocker on roster/dues schema,
+  per "Open Questions" below.
 
 ## What We're Building
 
