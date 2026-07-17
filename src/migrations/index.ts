@@ -8,6 +8,7 @@ import * as migration_20260209_191600_add_contacts_status from './20260209_19160
 import * as migration_20260716_185517_add_posts_photo_attribution from './20260716_185517_add_posts_photo_attribution';
 import * as migration_20260716_194500_add_posts_v_photo_attribution from './20260716_194500_add_posts_v_photo_attribution';
 import * as migration_20260717_000000_add_projects from './20260717_000000_add_projects';
+import * as migration_20260717_010000_add_projects_locked_docs_rel from './20260717_010000_add_projects_locked_docs_rel';
 
 export const migrations = [
   {
@@ -59,5 +60,10 @@ export const migrations = [
     up: migration_20260717_000000_add_projects.up,
     down: migration_20260717_000000_add_projects.down,
     name: '20260717_000000_add_projects'
+  },
+  {
+    up: migration_20260717_010000_add_projects_locked_docs_rel.up,
+    down: migration_20260717_010000_add_projects_locked_docs_rel.down,
+    name: '20260717_010000_add_projects_locked_docs_rel'
   },
 ];
