@@ -37,15 +37,55 @@ read and everyone manages contacts/rosters per the discovery notes below).
   touching the real ~1,800 contacts. Re-runnable; only touches its own
   `@dev-seed.test` rows.
 
+**Also done (2026-07-17):**
+- **Contact detail page** at `/dashboard/contacts/[id]`. The "view" icon in the
+  Contacts table now links here (`overflow "more actions" icon still inert — no
+  menu exists yet). Sections are conditional on `contactType`: Basic Info always,
+  Player Details / Coaching Experience / Involvement mutually exclusive by type,
+  Address only if any address field is set, Notes only if present. Parent
+  email/phone shown only for `boys-youth`/`girls-youth` programs, matching the
+  same condition used in `Contacts.ts`. Uses `disableErrors: true` on
+  `findByID` + `notFound()` rather than try/catch. Added a shadcn `Card`
+  component (`src/components/dashboard/ui/card.tsx`) — first use of Card in
+  this tree; prior pages (Overview, Contacts table) hand-rolled `rounded-lg
+  border` divs instead. Verified all three contact types (player/coach/donor)
+  plus the 404 case against the seeded dev data.
+  - Fixed a real responsive bug found during review: `CardContent` grids used
+    bare `grid gap-4 sm:grid-cols-2` with no base column class. Below `sm`,
+    that leaves no explicit `grid-template-columns`, so Chromium sizes the
+    implicit track to `max-content` — which doesn't shrink for a long
+    unbroken string (a URL, a run-on note) even with `break-words` applied.
+    Fix: always declare an explicit `grid-cols-1` base (Tailwind's `grid-cols-N`
+    utilities use `minmax(0,1fr)` tracks, which do shrink), plus `min-w-0` on
+    `Card`/`CardContent` themselves (flex/grid items whose default
+    `min-width: auto` would otherwise still force overflow) and `break-words`
+    on the actual text nodes. Reproduced by temporarily writing long unbroken
+    values into a dev-seed contact via direct sqlite3 UPDATE, then reverted.
+- **Contact quick-view drawer**: clicking a row (or the eye icon) in
+  `ContactsTable` opens a right-side `Sheet` (`contact-quick-view.tsx`) with
+  name/avatar/subtitle, citizenship+status badges, email (with copy button),
+  phone, contact type, program, and notes — using the `Contact` object
+  already in memory from the table's list query, no extra fetch. A
+  "View Full Details" button links to the full `/dashboard/contacts/[id]`
+  page. `ContactsTable` is now a client component (`'use client'`) to hold
+  the open/selected state; row clicks are stopped from bubbling on the
+  checkbox and actions cells so selecting/copying doesn't also open the
+  drawer. Extracted `CITIZENSHIP_STYLES` and a shared `CitizenshipBadge`
+  component (`citizenship-badge.tsx`) since the styling map was about to be
+  duplicated a third time across table/detail-page/drawer.
+- **Routing resolved**: `italialacrosse.us` (root) is the public site, hosted on
+  Divhunt — a separate platform, not this repo. This app deploys at
+  `admin.italialacrosse.us` only. Jason is the only one who needs Payload's raw
+  admin UI; every other staff member should land on `/dashboard`. Changed `/`
+  (`src/app/(frontend)/page.tsx`) to redirect to `/dashboard` instead of `/admin`.
+  The existing "Payload admin" item in the sidebar user-menu dropdown
+  (`nav-user.tsx`) now opens `/admin` with `target="_blank"` so Jason can reach
+  the CMS without leaving the dashboard tab.
+
 **Not done / open threads:**
-- "View contact" and "more actions" icons are visually present but inert — no detail
-  page exists yet.
 - `Events` collection is `adminOnly` on read (`src/collections/Events.ts`). The
   planned Calendar page merges Events with internal activities — as-is, a non-admin
   editor would see an empty calendar. Needs fixing before Calendar is built.
-- `/` still redirects to `/admin` (`src/app/(frontend)/page.tsx`), not `/dashboard`.
-  Suggested one-line change, not yet made — Jason's call on whether the dashboard
-  should be the actual front door.
 - `.planning/STATE.md` and `ROADMAP.md` still track the February CSV Import Tool as
   current work. They were never updated to reflect the dashboard project and are
   stale as of this session — worth a GSD re-plan if the team wants to use that
