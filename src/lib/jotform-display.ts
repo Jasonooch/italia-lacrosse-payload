@@ -140,8 +140,10 @@ export function getSubmissionSummary(submission: JotformSubmission) {
   let name: string | null = fullnameAnswer ? formatAnswerValue(fullnameAnswer.answer) : null
 
   if (!name) {
-    const first = answers.find((a) => /first.?name/i.test(a.name || '') && a.answer)
-    const last = answers.find((a) => /last.?name/i.test(a.name || '') && a.answer)
+    const matchesFirst = (a: JotformAnswer) => /first.?name/i.test(a.name || '') || /first.?name/i.test(a.text || '')
+    const matchesLast = (a: JotformAnswer) => /last.?name/i.test(a.name || '') || /last.?name/i.test(a.text || '')
+    const first = answers.find((a) => matchesFirst(a) && a.answer)
+    const last = answers.find((a) => matchesLast(a) && a.answer)
     if (first || last) {
       name = [first?.answer, last?.answer].filter(Boolean).join(' ')
     } else {
