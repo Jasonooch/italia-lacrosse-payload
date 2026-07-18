@@ -43,7 +43,7 @@ export default async function ContactsPage({
     <>
       <PageHeader
         title="Contacts"
-        description="Players, donors, and coaches — the people behind the program."
+        description="Players, donors, and coaches."
       />
       <ContactsFilters />
       <ContactsTable
