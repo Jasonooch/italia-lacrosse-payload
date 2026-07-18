@@ -10,9 +10,9 @@ export default async function NewProjectPage() {
   const user = await requireDashboardUser()
   const payload = await getPayload({ config })
 
-  const [{ docs: users }, { docs: events }] = await Promise.all([
+  const [{ docs: users }, { docs: tournaments }] = await Promise.all([
     payload.find({ collection: 'users', user, overrideAccess: false, sort: 'firstName', limit: 0 }),
-    payload.find({ collection: 'events', user, overrideAccess: false, sort: '-year', limit: 0 }),
+    payload.find({ collection: 'tournaments', user, overrideAccess: false, sort: '-year', limit: 0 }),
   ])
 
   return (
@@ -25,7 +25,7 @@ export default async function NewProjectPage() {
         Back to projects
       </Link>
       <PageHeader title="New Project" description="Create a project to track committee work and milestones." />
-      <ProjectForm users={users} events={events} />
+      <ProjectForm users={users} tournaments={tournaments} />
     </div>
   )
 }

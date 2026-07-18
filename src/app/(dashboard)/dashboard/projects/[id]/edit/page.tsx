@@ -27,9 +27,9 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
     notFound()
   }
 
-  const [{ docs: users }, { docs: events }] = await Promise.all([
+  const [{ docs: users }, { docs: tournaments }] = await Promise.all([
     payload.find({ collection: 'users', user, overrideAccess: false, sort: 'firstName', limit: 0 }),
-    payload.find({ collection: 'events', user, overrideAccess: false, sort: '-year', limit: 0 }),
+    payload.find({ collection: 'tournaments', user, overrideAccess: false, sort: '-year', limit: 0 }),
   ])
 
   return (
@@ -45,7 +45,7 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
         <PageHeader title="Edit Project" description="Update project details, owner, team, and dates." />
         <DeleteProjectButton projectId={project.id} projectTitle={project.title} />
       </div>
-      <ProjectForm project={project} users={users} events={events} />
+      <ProjectForm project={project} users={users} tournaments={tournaments} />
     </div>
   )
 }

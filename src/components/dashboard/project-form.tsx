@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { X } from 'lucide-react'
-import type { Event, Project, User } from '@/payload-types'
+import type { Project, Tournament, User } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
 import { PROJECT_STATUS_LABELS, type ProjectStatus } from '@/lib/project-display'
 import {
@@ -38,11 +38,11 @@ function dateInputValue(value?: string | null): string {
 export function ProjectForm({
   project,
   users,
-  events,
+  tournaments,
 }: {
   project?: Project
   users: User[]
-  events: Event[]
+  tournaments: Tournament[]
 }) {
   const isEdit = Boolean(project)
 
@@ -51,7 +51,9 @@ export function ProjectForm({
   const [status, setStatus] = useState<ProjectStatus>(project?.status ?? 'not-started')
   const [startDate, setStartDate] = useState(dateInputValue(project?.startDate))
   const [dueDate, setDueDate] = useState(dateInputValue(project?.dueDate))
-  const [event, setEvent] = useState<string>(idOf(project?.event) ? String(idOf(project?.event)) : NONE)
+  const [tournament, setTournament] = useState<string>(
+    idOf(project?.tournament) ? String(idOf(project?.tournament)) : NONE,
+  )
   const [owner, setOwner] = useState<string>(idOf(project?.owner) ? String(idOf(project?.owner)) : NONE)
   const [team, setTeam] = useState<number[]>(
     (project?.team ?? []).map((member) => idOf(member)).filter((id): id is number => id != null),
@@ -74,7 +76,7 @@ export function ProjectForm({
       status,
       startDate: startDate || null,
       dueDate: dueDate || null,
-      event: event === NONE ? null : Number(event),
+      tournament: tournament === NONE ? null : Number(tournament),
       owner: owner === NONE ? null : Number(owner),
       team,
     }
@@ -157,22 +159,22 @@ export function ProjectForm({
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium">Event</label>
-        <Select value={event} onValueChange={setEvent}>
+        <label className="mb-1.5 block text-sm font-medium">Tournament</label>
+        <Select value={tournament} onValueChange={setTournament}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="None" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={NONE}>None</SelectItem>
-            {events.map((ev) => (
-              <SelectItem key={ev.id} value={String(ev.id)}>
-                {ev.name}
+            {tournaments.map((t) => (
+              <SelectItem key={t.id} value={String(t.id)}>
+                {t.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        {events.length === 0 && (
-          <p className="mt-1 text-xs text-muted-foreground">No events available to link.</p>
+        {tournaments.length === 0 && (
+          <p className="mt-1 text-xs text-muted-foreground">No tournaments available to link.</p>
         )}
       </div>
 

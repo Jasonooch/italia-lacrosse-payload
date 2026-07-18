@@ -1,4 +1,4 @@
-import type { Event, Project, User } from '@/payload-types'
+import type { Project, Tournament, User } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
 import { MILESTONE_STATUS_DOT_STYLES, formatProjectDate } from '@/lib/project-display'
 import { StatusBadge } from '@/components/dashboard/project-status-badge'
@@ -40,11 +40,11 @@ export function ProjectProgressCard({ milestones }: { milestones: Milestone[] })
 
 export function ProjectDetailsCard({
   project,
-  event,
+  tournament,
   owner,
 }: {
   project: Project
-  event: Event | null
+  tournament: Tournament | null
   owner: User | null
 }) {
   return (
@@ -78,10 +78,10 @@ export function ProjectDetailsCard({
             <span>—</span>
           )}
         </div>
-        {event && (
+        {tournament && (
           <div className="flex items-center justify-between gap-2">
-            <span className="shrink-0 text-muted-foreground">Event</span>
-            <span className="truncate text-right">{event.name}</span>
+            <span className="shrink-0 text-muted-foreground">Tournament</span>
+            <span className="truncate text-right">{tournament.name}</span>
           </div>
         )}
       </CardContent>

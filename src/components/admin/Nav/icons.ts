@@ -1,5 +1,6 @@
 import {
   Calendar,
+  CalendarDays,
   ClipboardList,
   Contact,
   FilePen,
@@ -18,7 +19,8 @@ export const collectionIcons: Record<string, LucideIcon> = {
   dashboard: LayoutDashboard,
   posts: FilePen,
   categories: FolderTree,
-  events: Calendar,
+  tournaments: Calendar,
+  events: CalendarDays,
   teams: Shield,
   players: User,
   coaches: GraduationCap,

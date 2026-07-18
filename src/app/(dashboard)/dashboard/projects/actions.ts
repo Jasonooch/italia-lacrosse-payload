@@ -14,7 +14,7 @@ export interface ProjectFormInput {
   status: ProjectStatus
   startDate?: string | null
   dueDate?: string | null
-  event?: number | null
+  tournament?: number | null
   owner?: number | null
   team?: number[]
 }
@@ -26,7 +26,7 @@ function toProjectData(input: ProjectFormInput) {
     status: input.status,
     startDate: input.startDate || null,
     dueDate: input.dueDate || null,
-    event: input.event || null,
+    tournament: input.tournament || null,
     owner: input.owner || null,
     team: input.team ?? [],
   }

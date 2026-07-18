@@ -54,11 +54,11 @@ export const Projects: CollectionConfig = {
       ],
     },
     {
-      name: 'event',
+      name: 'tournament',
       type: 'relationship',
-      relationTo: 'events',
+      relationTo: 'tournaments',
       admin: {
-        description: 'The tournament/event this project supports, if any.',
+        description: 'The tournament this project supports, if any.',
       },
     },
     {

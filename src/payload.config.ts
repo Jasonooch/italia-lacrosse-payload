@@ -17,6 +17,7 @@ import { Teams } from './collections/Teams'
 import { Coaches } from './collections/Coaches'
 import { Players } from './collections/Players'
 import { Events } from './collections/Events'
+import { Tournaments } from './collections/Tournaments'
 import { Contacts } from './collections/Contacts'
 import { Forms } from './collections/Forms'
 import { FormSubmissions } from './collections/FormSubmissions'
@@ -67,6 +68,7 @@ export default buildConfig({
   collections: [
     Posts,
     Categories,
+    Tournaments,
     Events,
     Teams,
     Players,

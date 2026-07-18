@@ -1,221 +1,89 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, DateFieldValidation } from 'payload'
 
-import { slugField } from '../fields/slug'
-
-import { anyone } from '../access/anyone'
 import { authenticated } from '../access/authenticated'
-import { adminOnly } from '@/access'
 
 export const Events: CollectionConfig = {
   slug: 'events',
   timestamps: true,
   admin: {
-    useAsTitle: 'name',
-    defaultColumns: ['name', 'year', 'location', 'startDate', 'updatedAt'],
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'eventType', 'startDate', 'team', 'updatedAt'],
+    group: 'Admin',
   },
   access: {
-    create: adminOnly,
-    delete: adminOnly,
-    read: adminOnly,
-    update: adminOnly,
+    create: authenticated,
+    delete: authenticated,
+    read: authenticated,
+    update: authenticated,
   },
   fields: [
-    // Auto-Generated Name Fields (outside tabs)
     {
-      name: 'year',
-      type: 'number',
+      name: 'title',
+      type: 'text',
       required: true,
-      min: 2024,
-      max: 2050,
-      defaultValue: new Date().getFullYear(),
-      admin: {
-        description: 'Event year',
-      },
-    },
-    {
-      name: 'team',
-      type: 'relationship',
-      relationTo: 'teams',
-      required: true,
-      label: 'Team',
-      admin: {
-        description: 'Which Italian team is this event for?',
-      },
     },
     {
       name: 'eventType',
       type: 'select',
       required: true,
+      defaultValue: 'meeting',
       options: [
-        { label: 'World Championship', value: 'world-championship' },
-        { label: 'European Championship', value: 'european-championship' },
-        { label: 'Sixes World Championship', value: 'sixes-world-championship' },
-        { label: 'Sixes European Championship', value: 'sixes-european-championship' },
+        { label: 'Meeting', value: 'meeting' },
+        { label: 'Tryout', value: 'tryout' },
+        { label: 'Training Camp', value: 'training-camp' },
+        { label: 'Other', value: 'other' },
       ],
-      admin: {
-        description: 'Type of event',
-      },
     },
     {
-      name: 'name',
-      type: 'text',
-      required: true,
-      admin: {
-        readOnly: true,
-        position: 'sidebar',
-        description: 'Auto-generated from year, team, and event type',
-      },
-      hooks: {
-        beforeValidate: [
-          async ({ data, req }) => {
-            if (data && data.team && data.eventType && data.year) {
-              // Safely extract team ID
-              const teamId =
-                typeof data.team === 'string'
-                  ? data.team
-                  : typeof data.team === 'number'
-                    ? data.team
-                    : data.team?.id
-
-              // Only fetch if we have a valid team ID
-              if (teamId) {
-                try {
-                  const team = await req.payload.findByID({
-                    collection: 'teams',
-                    id: teamId,
-                  })
-
-                  // Strip "Senior" from team name for event display
-                  const teamName = (team?.name || '').replace(' Senior', '')
-
-                  // Convert eventType to display format
-                  const eventTypeDisplay = data.eventType
-                    ?.split('-')
-                    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ')
-
-                  // Generate name: "2026 Men's World Championship"
-                  return `${data.year} ${teamName} ${eventTypeDisplay}`
-                } catch {
-                  // If team fetch fails, return existing name or empty
-                  return data?.name || ''
-                }
-              }
-            }
-            return data?.name || ''
+      type: 'row',
+      fields: [
+        {
+          name: 'startDate',
+          type: 'date',
+          required: true,
+          admin: {
+            width: '50%',
+            date: { pickerAppearance: 'dayAndTime' },
           },
-        ],
-      },
-    },
-    ...slugField('name'),
-    // Tabs
-    {
-      type: 'tabs',
-      tabs: [
-        // TAB 1 - Event Info
-        {
-          label: 'Event Info',
-          fields: [
-            // Basic Event Information
-            {
-              name: 'location',
-              type: 'text',
-              required: true,
-              admin: {
-                description: 'City and country (e.g., "Los Angeles, USA")',
-              },
-            },
-            {
-              name: 'venue',
-              type: 'text',
-              admin: {
-                description: 'Venue name (e.g., "Dignity Health Sports Park") - optional',
-              },
-            },
-            {
-              name: 'startDate',
-              type: 'date',
-              required: true,
-              admin: {
-                date: {
-                  pickerAppearance: 'dayOnly',
-                  displayFormat: 'MMM d, yyyy',
-                },
-              },
-            },
-            {
-              name: 'endDate',
-              type: 'date',
-              required: true,
-              admin: {
-                date: {
-                  pickerAppearance: 'dayOnly',
-                  displayFormat: 'MMM d, yyyy',
-                },
-              },
-            },
-            {
-              name: 'logo',
-              type: 'upload',
-              relationTo: 'media',
-              admin: {
-                description: 'Event/tournament logo',
-              },
-            },
-            {
-              name: 'eventWebsite',
-              type: 'text',
-              admin: {
-                description: 'Official event website URL',
-              },
-              validate: (val: string | null | undefined) => {
-                if (!val) return true
-                return /^https?:\/\/.+/.test(val) || 'Must be a valid URL'
-              },
-            },
-            {
-              name: 'description',
-              type: 'textarea',
-              admin: {
-                description: 'Event details and information (optional)',
-              },
-            },
-          ],
         },
-        // TAB 2 - Coaching Staff
         {
-          label: 'Coaching Staff',
-          fields: [
-            {
-              name: 'coachingStaff',
-              type: 'array',
-              label: 'Coaching Staff',
-              admin: {
-                description: 'Coaches and staff assigned to this event',
-              },
-              fields: [
-                {
-                  name: 'coach',
-                  type: 'relationship',
-                  relationTo: 'coaches',
-                  required: true,
-                },
-                {
-                  name: 'role',
-                  type: 'select',
-                  required: true,
-                  options: [
-                    { label: 'Head Coach', value: 'head-coach' },
-                    { label: 'Assistant Coach', value: 'assistant-coach' },
-                    { label: 'Team Manager', value: 'team-manager' },
-                    { label: 'Team Trainer', value: 'team-trainer' },
-                  ],
-                },
-              ],
-            },
-          ],
+          name: 'endDate',
+          type: 'date',
+          admin: {
+            width: '50%',
+            date: { pickerAppearance: 'dayAndTime' },
+          },
+          validate: ((value, { siblingData }) => {
+            const startDate = (siblingData as { startDate?: string })?.startDate
+            if (!value || !startDate) return true
+            return new Date(value) >= new Date(startDate) || 'End date must be after start date'
+          }) as DateFieldValidation,
         },
       ],
+    },
+    {
+      name: 'allDay',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Hide the time of day and show this as spanning the full day(s).',
+      },
+    },
+    {
+      name: 'location',
+      type: 'text',
+    },
+    {
+      name: 'team',
+      type: 'relationship',
+      relationTo: 'teams',
+      admin: {
+        description: 'Which team this is for, if any.',
+      },
+    },
+    {
+      name: 'description',
+      type: 'textarea',
     },
   ],
 }

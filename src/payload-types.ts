@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     posts: Post;
     categories: Category;
+    tournaments: Tournament;
     events: Event;
     teams: Team;
     players: Player;
@@ -94,6 +95,7 @@ export interface Config {
   collectionsSelect: {
     posts: PostsSelect<false> | PostsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    tournaments: TournamentsSelect<false> | TournamentsSelect<true>;
     events: EventsSelect<false> | EventsSelect<true>;
     teams: TeamsSelect<false> | TeamsSelect<true>;
     players: PlayersSelect<false> | PlayersSelect<true>;
@@ -458,9 +460,9 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "events".
+ * via the `definition` "tournaments".
  */
-export interface Event {
+export interface Tournament {
   id: number;
   /**
    * Event year
@@ -515,6 +517,29 @@ export interface Event {
         id?: string | null;
       }[]
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events".
+ */
+export interface Event {
+  id: number;
+  title: string;
+  eventType: 'meeting' | 'tryout' | 'training-camp' | 'other';
+  startDate: string;
+  endDate?: string | null;
+  /**
+   * Hide the time of day and show this as spanning the full day(s).
+   */
+  allDay?: boolean | null;
+  location?: string | null;
+  /**
+   * Which team this is for, if any.
+   */
+  team?: (number | null) | Team;
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -691,9 +716,9 @@ export interface Project {
   startDate?: string | null;
   dueDate?: string | null;
   /**
-   * The tournament/event this project supports, if any.
+   * The tournament this project supports, if any.
    */
-  event?: (number | null) | Event;
+  tournament?: (number | null) | Tournament;
   owner?: (number | null) | User;
   team?: (number | User)[] | null;
   milestones?:
@@ -833,6 +858,10 @@ export interface PayloadLockedDocument {
         value: number | Category;
       } | null)
     | ({
+        relationTo: 'tournaments';
+        value: number | Tournament;
+      } | null)
+    | ({
         relationTo: 'events';
         value: number | Event;
       } | null)
@@ -955,9 +984,9 @@ export interface CategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "events_select".
+ * via the `definition` "tournaments_select".
  */
-export interface EventsSelect<T extends boolean = true> {
+export interface TournamentsSelect<T extends boolean = true> {
   year?: T;
   team?: T;
   eventType?: T;
@@ -977,6 +1006,22 @@ export interface EventsSelect<T extends boolean = true> {
         role?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events_select".
+ */
+export interface EventsSelect<T extends boolean = true> {
+  title?: T;
+  eventType?: T;
+  startDate?: T;
+  endDate?: T;
+  allDay?: T;
+  location?: T;
+  team?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1243,7 +1288,7 @@ export interface ProjectsSelect<T extends boolean = true> {
   status?: T;
   startDate?: T;
   dueDate?: T;
-  event?: T;
+  tournament?: T;
   owner?: T;
   team?: T;
   milestones?:

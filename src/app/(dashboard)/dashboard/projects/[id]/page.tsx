@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Pencil } from 'lucide-react'
-import type { Event, User } from '@/payload-types'
+import type { Tournament, User } from '@/payload-types'
 import { requireDashboardUser } from '@/lib/auth'
 import { ProjectStatusControl } from '@/components/dashboard/project-status-control'
 import { ProjectDetailsCard, ProjectProgressCard } from '@/components/dashboard/project-sidebar'
@@ -40,7 +40,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const owner = project.owner && typeof project.owner === 'object' ? (project.owner as User) : null
   const team = (project.team ?? []).filter((member): member is User => typeof member === 'object')
-  const event = project.event && typeof project.event === 'object' ? (project.event as Event) : null
+  const tournament =
+    project.tournament && typeof project.tournament === 'object'
+      ? (project.tournament as Tournament)
+      : null
   const milestones = project.milestones ?? []
 
   return (
@@ -80,7 +83,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </div>
         <div className="space-y-6">
           <ProjectProgressCard milestones={milestones} />
-          <ProjectDetailsCard project={project} event={event} owner={owner} />
+          <ProjectDetailsCard project={project} tournament={tournament} owner={owner} />
           <ProjectTeamCard projectId={project.id} owner={owner} team={team} allUsers={allUsers} />
         </div>
       </div>

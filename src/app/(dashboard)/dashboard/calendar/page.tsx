@@ -1,10 +1,17 @@
-import { PageHeader, Placeholder } from '@/components/dashboard/page-header'
+import config from '@payload-config'
+import { getPayload } from 'payload'
+import { requireDashboardUser } from '@/lib/auth'
+import { CalendarView } from '@/components/dashboard/calendar-view'
 
-export default function CalendarPage() {
-  return (
-    <>
-      <PageHeader title="Calendar" description="Tournaments and internal activities in one view." />
-      <Placeholder note="Will merge the existing Events collection with internal meetings/camps/galas. Note: Events is currently admin-only on read, so editors would see nothing here." />
-    </>
-  )
+export default async function CalendarPage() {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  const [{ docs: events }, { docs: tournaments }, { docs: teams }] = await Promise.all([
+    payload.find({ collection: 'events', user, overrideAccess: false, depth: 0, limit: 0 }),
+    payload.find({ collection: 'tournaments', user, overrideAccess: false, depth: 0, limit: 0 }),
+    payload.find({ collection: 'teams', user, overrideAccess: false, sort: 'name', limit: 0 }),
+  ])
+
+  return <CalendarView events={events} tournaments={tournaments} teams={teams} />
 }
