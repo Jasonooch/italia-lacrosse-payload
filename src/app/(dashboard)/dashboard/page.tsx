@@ -1,6 +1,7 @@
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { PageHeader } from '@/components/dashboard/page-header'
+import { ActiveProjects } from '@/components/dashboard/active-projects'
 import { requireDashboardUser } from '@/lib/auth'
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint: string }) {
@@ -19,7 +20,7 @@ export default async function OverviewPage() {
 
   // overrideAccess: false so these counts respect the same permissions the user
   // has in the Payload admin, rather than silently bypassing them.
-  const [contacts, submissions, drafts] = await Promise.all([
+  const [contacts, submissions, drafts, { docs: activeProjects }] = await Promise.all([
     payload.count({ collection: 'contacts', user, overrideAccess: false }),
     payload.count({ collection: 'form-submissions', user, overrideAccess: false }),
     payload.count({
@@ -27,6 +28,15 @@ export default async function OverviewPage() {
       user,
       overrideAccess: false,
       where: { _status: { not_equals: 'published' } },
+    }),
+    payload.find({
+      collection: 'projects',
+      user,
+      overrideAccess: false,
+      where: { status: { equals: 'in-progress' } },
+      sort: '-updatedAt',
+      depth: 1,
+      limit: 3,
     }),
   ])
 
@@ -55,6 +65,10 @@ export default async function OverviewPage() {
           value={drafts.totalDocs.toLocaleString()}
           hint="Drafts awaiting review"
         />
+      </div>
+
+      <div className="mt-6">
+        <ActiveProjects projects={activeProjects} />
       </div>
     </>
   )
