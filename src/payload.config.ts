@@ -109,7 +109,7 @@ export default buildConfig({
       generateTitle: ({ doc }) => `${doc?.title || ''} | Italia Lacrosse`,
       generateDescription: ({ doc }) => doc?.meta?.description || '',
       generateURL: ({ doc }) =>
-        `${process.env.FRONTEND_URL || 'https://italialacrosse.com'}/posts/${doc?.slug || ''}`,
+        `${process.env.FRONTEND_URL || 'https://italialacrosse.us'}/posts/${doc?.slug || ''}`,
     }),
   ],
 })
