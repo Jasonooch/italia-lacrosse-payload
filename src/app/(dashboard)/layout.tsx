@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/dashboard/theme-provider'
 export const metadata = {
   title: 'Italia Lacrosse Dashboard',
   description: 'Staff dashboard for Italia Lacrosse',
+  icons: { icon: '/logo-lt.png' },
 }
 
 export default function DashboardRootLayout({ children }: { children: React.ReactNode }) {
