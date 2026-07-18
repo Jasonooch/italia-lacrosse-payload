@@ -52,14 +52,14 @@ export function ContactQuickView({
                 </div>
                 <div className="min-w-0">
                   <SheetTitle className="truncate">{contact.fullName}</SheetTitle>
-                  <SheetDescription className="truncate">
-                    {getContactSubtitle(contact)}
-                  </SheetDescription>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SheetDescription className="truncate">
+                      {getContactSubtitle(contact)}
+                    </SheetDescription>
+                    <CitizenshipBadge citizenship={contact.citizenship} />
+                    {contact.status && <StatusBadge status={contact.status} />}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 pt-1">
-                <CitizenshipBadge citizenship={contact.citizenship} />
-                {contact.status && <StatusBadge status={contact.status} />}
               </div>
             </SheetHeader>
 
