@@ -21,7 +21,7 @@ pnpm test:e2e         # Playwright e2e tests
 
 # Build & Deploy
 pnpm build            # Production build
-pnpm deploy           # Full deploy (migrate + build + deploy to Cloudflare)
+pnpm run deploy       # Full deploy (migrate + build + deploy to Cloudflare) — `pnpm deploy` is a reserved pnpm workspace command, not this script
 pnpm deploy:database  # Run migrations on Cloudflare D1
 
 # Database

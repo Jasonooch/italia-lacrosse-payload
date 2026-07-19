@@ -270,53 +270,59 @@ function SortableMilestoneRow({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={
-        'flex items-center gap-2 border-b bg-card px-2 py-3 last:border-b-0 ' +
+        'flex flex-col gap-2 border-b bg-card px-2 py-3 last:border-b-0 sm:flex-row sm:items-start ' +
         (isDragging ? 'relative z-10 rounded-md shadow-md' : '')
       }
     >
-      <button
-        type="button"
-        className="shrink-0 cursor-grab touch-none text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
-        aria-label="Drag to reorder"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="size-4" />
-      </button>
-      <span
-        className={
-          'size-2.5 shrink-0 rounded-full ' +
-          (milestone.status === 'completed'
-            ? 'bg-green-500'
-            : milestone.status === 'in-progress'
-              ? 'bg-blue-500'
-              : 'bg-muted-foreground/30')
-        }
-      />
-      <p className="min-w-0 flex-1 truncate text-sm font-medium">{milestone.title}</p>
-      {dueDate && <span className="shrink-0 text-xs text-muted-foreground">{dueDate}</span>}
-      <AssigneeAvatar assignee={milestone.assignee} />
-      <Select value={milestone.status} onValueChange={handleStatusChange} disabled={isPending}>
-        <SelectTrigger
-          size="sm"
-          className={
-            'h-7 shrink-0 border-transparent px-2.5 text-xs font-medium shadow-none ' +
-            MILESTONE_STATUS_PILL_STYLES[milestone.status]
-          }
+      <div className="flex min-w-0 flex-1 items-start gap-2">
+        <button
+          type="button"
+          className="mt-0.5 shrink-0 cursor-grab touch-none text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
+          aria-label="Drag to reorder"
+          {...attributes}
+          {...listeners}
         >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent align="end">
-          {(Object.entries(MILESTONE_STATUS_LABELS) as [MilestoneStatus, string][]).map(
-            ([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ),
-          )}
-        </SelectContent>
-      </Select>
-      <MilestoneActions projectId={projectId} milestone={milestone} users={users} />
+          <GripVertical className="size-4" />
+        </button>
+        <span
+          className={
+            'mt-1.5 size-2.5 shrink-0 rounded-full ' +
+            (milestone.status === 'completed'
+              ? 'bg-green-500'
+              : milestone.status === 'in-progress'
+                ? 'bg-blue-500'
+                : 'bg-muted-foreground/30')
+          }
+        />
+        <p className="min-w-0 flex-1 text-sm font-medium">{milestone.title}</p>
+      </div>
+      {/* Due date / assignee / status / actions wrap onto their own row below
+          the title on narrow screens instead of squeezing it into a sliver. */}
+      <div className="flex shrink-0 items-center gap-2 pl-6 sm:pl-0">
+        {dueDate && <span className="shrink-0 text-xs text-muted-foreground">{dueDate}</span>}
+        <AssigneeAvatar assignee={milestone.assignee} />
+        <Select value={milestone.status} onValueChange={handleStatusChange} disabled={isPending}>
+          <SelectTrigger
+            size="sm"
+            className={
+              'h-7 shrink-0 border-transparent px-2.5 text-xs font-medium shadow-none ' +
+              MILESTONE_STATUS_PILL_STYLES[milestone.status]
+            }
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {(Object.entries(MILESTONE_STATUS_LABELS) as [MilestoneStatus, string][]).map(
+              ([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
+        <MilestoneActions projectId={projectId} milestone={milestone} users={users} />
+      </div>
     </div>
   )
 }

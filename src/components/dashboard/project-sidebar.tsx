@@ -26,9 +26,11 @@ export function ProjectProgressCard({ milestones }: { milestones: Milestone[] })
         {milestones.length > 0 && (
           <ul className="space-y-2">
             {milestones.map((milestone) => (
-              <li key={milestone.id} className="flex items-center gap-2 text-sm">
-                <span className={`size-2 shrink-0 rounded-full ${MILESTONE_STATUS_DOT_STYLES[milestone.status]}`} />
-                <span className="min-w-0 truncate">{milestone.title}</span>
+              <li key={milestone.id} className="flex items-start gap-2 text-sm">
+                <span
+                  className={`mt-1.5 size-2 shrink-0 rounded-full ${MILESTONE_STATUS_DOT_STYLES[milestone.status]}`}
+                />
+                <span className="min-w-0">{milestone.title}</span>
               </li>
             ))}
           </ul>
