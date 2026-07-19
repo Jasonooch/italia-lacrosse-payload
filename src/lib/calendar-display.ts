@@ -44,6 +44,7 @@ export interface CalendarItem {
    * calendar grid itself never needed to display. */
   location: string | null
   team: number | null
+  assignedStaff: number[]
   description: string | null
 }
 
@@ -62,6 +63,9 @@ export function toCalendarItems(events: Event[], tournaments: Tournament[]): Cal
     allDay: event.allDay ?? false,
     location: event.location ?? null,
     team: typeof event.team === 'object' ? (event.team?.id ?? null) : (event.team ?? null),
+    assignedStaff: (event.assignedStaff ?? []).map((staff) =>
+      typeof staff === 'object' ? staff.id : staff,
+    ),
     description: event.description ?? null,
   }))
 
@@ -76,6 +80,7 @@ export function toCalendarItems(events: Event[], tournaments: Tournament[]): Cal
     allDay: true,
     location: null,
     team: null,
+    assignedStaff: [],
     description: null,
   }))
 

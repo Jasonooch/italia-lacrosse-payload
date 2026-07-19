@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import type { Team } from '@/payload-types'
+import type { Team, User } from '@/payload-types'
 import type { CalendarItem } from '@/lib/calendar-display'
 import { EVENT_TYPE_LABELS, EVENT_TYPE_PILL_STYLES } from '@/lib/calendar-display'
 import { deleteEvent, updateEvent, type EventFormInput } from '@/app/(dashboard)/dashboard/calendar/actions'
@@ -17,7 +17,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/dashboard/ui/sheet'
-import { CalendarEventForm } from '@/components/dashboard/calendar-event-form'
+import { CalendarEventForm, staffLabel } from '@/components/dashboard/calendar-event-form'
 
 function formatItemDate(item: CalendarItem): string {
   const start = new Date(item.startDate)
@@ -44,11 +44,13 @@ type SheetMode = 'view' | 'edit' | 'delete'
 export function CalendarItemSheet({
   item,
   teams,
+  staff,
   open,
   onOpenChange,
 }: {
   item: CalendarItem | null
   teams: Team[]
+  staff: User[]
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -69,6 +71,11 @@ export function CalendarItemSheet({
   }
 
   const teamName = item.team ? (teams.find((t) => t.id === item.team)?.name ?? null) : null
+  const assignedStaffNames = item.assignedStaff
+    .map((id) => staff.find((person) => person.id === id))
+    .filter((person): person is User => Boolean(person))
+    .map(staffLabel)
+    .join(', ')
 
   function handleEdit(values: EventFormInput) {
     startTransition(async () => {
@@ -100,6 +107,7 @@ export function CalendarItemSheet({
             <div className="grid gap-4 px-4">
               <DetailField label="Location" value={item.location} />
               <DetailField label="Team" value={teamName} />
+              <DetailField label="Assigned Staff" value={assignedStaffNames} />
               <DetailField label="Description" value={item.description} />
             </div>
             <SheetFooter>
@@ -127,6 +135,7 @@ export function CalendarItemSheet({
           <div className="space-y-2 px-4">
             <CalendarEventForm
               teams={teams}
+              staff={staff}
               submitLabel="Save Changes"
               isPending={isPending}
               initial={{
@@ -137,6 +146,7 @@ export function CalendarItemSheet({
                 allDay: item.allDay,
                 location: item.location ?? '',
                 team: item.team ? String(item.team) : '',
+                assignedStaff: item.assignedStaff,
                 description: item.description ?? '',
               }}
               onSubmit={handleEdit}

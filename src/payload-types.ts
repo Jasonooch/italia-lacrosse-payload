@@ -81,6 +81,9 @@ export interface Config {
     'form-submissions': FormSubmission;
     projects: Project;
     'project-files': ProjectFile;
+    comments: Comment;
+    'activity-log': ActivityLog;
+    notifications: Notification;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
@@ -108,6 +111,9 @@ export interface Config {
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     'project-files': ProjectFilesSelect<false> | ProjectFilesSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
+    'activity-log': ActivityLogSelect<false> | ActivityLogSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -541,6 +547,10 @@ export interface Event {
    * Which team this is for, if any.
    */
   team?: (number | null) | Team;
+  /**
+   * Staff members assigned to this event.
+   */
+  assignedStaff?: (number | User)[] | null;
   description?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -775,6 +785,77 @@ export interface ProjectFile {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  project: number | Project;
+  author: number | User;
+  body: string;
+  /**
+   * Staff @-mentioned in the body; each gets an inbox notification.
+   */
+  mentions?: (number | User)[] | null;
+  /**
+   * Set when this comment is a reply to another comment.
+   */
+  parent?: (number | null) | Comment;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "activity-log".
+ */
+export interface ActivityLog {
+  id: number;
+  project: number | Project;
+  /**
+   * Who made the change. Empty for system-triggered entries.
+   */
+  actor?: (number | null) | User;
+  type:
+    | 'project-created'
+    | 'status-changed'
+    | 'team-changed'
+    | 'milestone-added'
+    | 'milestone-completed'
+    | 'milestone-updated'
+    | 'resource-added';
+  /**
+   * Human-readable sentence, e.g. "changed status to Completed".
+   */
+  summary: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: number;
+  recipient: number | User;
+  type: 'mention' | 'comment' | 'project-activity';
+  project?: (number | null) | Project;
+  /**
+   * Who triggered this notification.
+   */
+  actor?: (number | null) | User;
+  /**
+   * The comment this notification points at, for mention/comment types.
+   */
+  comment?: (number | null) | Comment;
+  /**
+   * Display sentence, e.g. "mentioned you in Fall Fundraising".
+   */
+  summary: string;
+  read?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -946,6 +1027,18 @@ export interface PayloadLockedDocument {
         value: number | ProjectFile;
       } | null)
     | ({
+        relationTo: 'comments';
+        value: number | Comment;
+      } | null)
+    | ({
+        relationTo: 'activity-log';
+        value: number | ActivityLog;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: number | Notification;
+      } | null)
+    | ({
         relationTo: 'payload-folders';
         value: number | FolderInterface;
       } | null);
@@ -1065,6 +1158,7 @@ export interface EventsSelect<T extends boolean = true> {
   allDay?: T;
   location?: T;
   team?: T;
+  assignedStaff?: T;
   description?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1372,6 +1466,46 @@ export interface ProjectFilesSelect<T extends boolean = true> {
   focalX?: T;
   focalY?: T;
   sizes?: T | {};
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  project?: T;
+  author?: T;
+  body?: T;
+  mentions?: T;
+  parent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "activity-log_select".
+ */
+export interface ActivityLogSelect<T extends boolean = true> {
+  project?: T;
+  actor?: T;
+  type?: T;
+  summary?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  recipient?: T;
+  type?: T;
+  project?: T;
+  actor?: T;
+  comment?: T;
+  summary?: T;
+  read?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

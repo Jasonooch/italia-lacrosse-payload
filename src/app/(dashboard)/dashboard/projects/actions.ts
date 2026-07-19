@@ -6,7 +6,13 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { requireDashboardUser } from '@/lib/auth'
 import type { Project } from '@/payload-types'
-import type { MilestoneStatus, ProjectStatus } from '@/lib/project-display'
+import {
+  PROJECT_STATUS_LABELS,
+  type MilestoneStatus,
+  type ProjectStatus,
+} from '@/lib/project-display'
+import { actorName, logActivity } from '@/lib/activity'
+import { notify, projectMemberIds } from '@/lib/notifications'
 
 export interface ProjectFormInput {
   title: string
@@ -42,6 +48,8 @@ export async function createProject(input: ProjectFormInput) {
     user,
     overrideAccess: false,
   })
+
+  await logActivity(payload, user, created.id, 'project-created', 'created the project')
 
   revalidatePath('/dashboard/projects')
   redirect(`/dashboard/projects/${created.id}`)
@@ -95,6 +103,7 @@ export async function updateMilestoneStatus(
     depth: 0,
   })
 
+  const target = (project.milestones ?? []).find((milestone) => milestone.id === milestoneId)
   const milestones = (project.milestones ?? []).map((milestone) =>
     milestone.id === milestoneId ? { ...milestone, status } : milestone,
   )
@@ -106,6 +115,18 @@ export async function updateMilestoneStatus(
     user,
     overrideAccess: false,
   })
+
+  // Only completions make the feed — reopening or nudging back to "in progress"
+  // is noise. `target` is looked up pre-update so we have the milestone title.
+  if (target && status === 'completed' && target.status !== 'completed') {
+    await logActivity(
+      payload,
+      user,
+      projectId,
+      'milestone-completed',
+      `completed milestone “${target.title}”`,
+    )
+  }
 
   revalidatePath(`/dashboard/projects/${projectId}`)
   revalidatePath('/dashboard/projects')
@@ -140,6 +161,17 @@ export async function addTeamMember(projectId: number, userId: number) {
     overrideAccess: false,
   })
 
+  const member = await payload.findByID({
+    collection: 'users',
+    id: userId,
+    user,
+    overrideAccess: false,
+    disableErrors: true,
+  })
+  if (member) {
+    await logActivity(payload, user, projectId, 'team-changed', `added ${actorName(member)} to the team`)
+  }
+
   revalidatePath(`/dashboard/projects/${projectId}`)
   revalidatePath('/dashboard/projects')
 }
@@ -166,6 +198,23 @@ export async function removeTeamMember(projectId: number, userId: number) {
     overrideAccess: false,
   })
 
+  const member = await payload.findByID({
+    collection: 'users',
+    id: userId,
+    user,
+    overrideAccess: false,
+    disableErrors: true,
+  })
+  if (member) {
+    await logActivity(
+      payload,
+      user,
+      projectId,
+      'team-changed',
+      `removed ${actorName(member)} from the team`,
+    )
+  }
+
   revalidatePath(`/dashboard/projects/${projectId}`)
   revalidatePath('/dashboard/projects')
 }
@@ -181,6 +230,14 @@ export async function updateProjectStatus(projectId: number, status: ProjectStat
     user,
     overrideAccess: false,
   })
+
+  await logActivity(
+    payload,
+    user,
+    projectId,
+    'status-changed',
+    `changed status to ${PROJECT_STATUS_LABELS[status]}`,
+  )
 
   revalidatePath(`/dashboard/projects/${projectId}`)
   revalidatePath('/dashboard/projects')
@@ -221,6 +278,8 @@ export async function addMilestone(projectId: number, input: MilestoneInput) {
     user,
     overrideAccess: false,
   })
+
+  await logActivity(payload, user, projectId, 'milestone-added', `added milestone “${input.title}”`)
 
   revalidatePath(`/dashboard/projects/${projectId}`)
   revalidatePath('/dashboard/projects')
@@ -277,6 +336,7 @@ export async function deleteMilestone(projectId: number, milestoneId: string) {
     depth: 0,
   })
 
+  const removed = (project.milestones ?? []).find((milestone) => milestone.id === milestoneId)
   const milestones = (project.milestones ?? []).filter(
     (milestone) => milestone.id !== milestoneId,
   )
@@ -288,6 +348,16 @@ export async function deleteMilestone(projectId: number, milestoneId: string) {
     user,
     overrideAccess: false,
   })
+
+  if (removed) {
+    await logActivity(
+      payload,
+      user,
+      projectId,
+      'milestone-updated',
+      `removed milestone “${removed.title}”`,
+    )
+  }
 
   revalidatePath(`/dashboard/projects/${projectId}`)
   revalidatePath('/dashboard/projects')
@@ -345,6 +415,8 @@ export async function addProjectResource(projectId: number, formData: FormData) 
     user,
     overrideAccess: false,
   })
+
+  await logActivity(payload, user, projectId, 'resource-added', `added resource “${title}”`)
 
   revalidatePath(`/dashboard/projects/${projectId}`)
 }
@@ -427,4 +499,98 @@ export async function reorderMilestones(projectId: number, orderedIds: string[])
 
   revalidatePath(`/dashboard/projects/${projectId}`)
   revalidatePath('/dashboard/projects')
+}
+
+/** Post a comment on a project's Activity tab. Pass `parentId` to make it a
+ * one-level reply, and `mentionIds` for staff @-mentioned in the body — each
+ * mentioned person gets a 'mention' inbox notification; other project members
+ * get a 'comment' one. */
+export async function addComment(
+  projectId: number,
+  body: string,
+  parentId?: number | null,
+  mentionIds: number[] = [],
+) {
+  const user = await requireDashboardUser()
+  const trimmed = body.trim()
+  if (!trimmed) return
+
+  const payload = await getPayload({ config })
+
+  const uniqueMentions = [...new Set(mentionIds)]
+
+  const comment = await payload.create({
+    collection: 'comments',
+    data: {
+      project: projectId,
+      author: user.id,
+      body: trimmed,
+      parent: parentId ?? null,
+      mentions: uniqueMentions,
+    },
+    user,
+    overrideAccess: false,
+  })
+
+  const project = await payload.findByID({
+    collection: 'projects',
+    id: projectId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+    disableErrors: true,
+  })
+
+  if (project) {
+    // Mentioned people get a mention; remaining project members get a plain
+    // comment notification (a mention takes precedence — no double-notifying).
+    await notify(payload, user, {
+      recipientIds: uniqueMentions,
+      type: 'mention',
+      projectId,
+      commentId: comment.id,
+      summary: `mentioned you in ${project.title}`,
+    })
+    const others = projectMemberIds(project).filter((id) => !uniqueMentions.includes(id))
+    await notify(payload, user, {
+      recipientIds: others,
+      type: 'comment',
+      projectId,
+      commentId: comment.id,
+      summary: `commented on ${project.title}`,
+    })
+  }
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
+/** Delete a comment. Only the author may remove their own; any reply threads
+ * left orphaned are dropped by the caller's re-fetch (their `parent` FK is set
+ * null on delete). */
+export async function deleteComment(commentId: number, projectId: number) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  const comment = await payload.findByID({
+    collection: 'comments',
+    id: commentId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+    disableErrors: true,
+  })
+
+  if (!comment) return
+  const authorId = typeof comment.author === 'object' ? comment.author.id : comment.author
+  const isAdmin = user.roles?.includes('admin')
+  if (authorId !== user.id && !isAdmin) return
+
+  await payload.delete({
+    collection: 'comments',
+    id: commentId,
+    user,
+    overrideAccess: false,
+  })
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
 }

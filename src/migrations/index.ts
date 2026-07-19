@@ -11,6 +11,9 @@ import * as migration_20260717_000000_add_projects from './20260717_000000_add_p
 import * as migration_20260717_010000_add_projects_locked_docs_rel from './20260717_010000_add_projects_locked_docs_rel';
 import * as migration_20260718_000000_rename_events_to_tournaments_and_add_events from './20260718_000000_rename_events_to_tournaments_and_add_events';
 import * as migration_20260718_010000_add_project_resources_and_files from './20260718_010000_add_project_resources_and_files';
+import * as migration_20260719_000000_add_events_assigned_staff from './20260719_000000_add_events_assigned_staff';
+import * as migration_20260719_010000_add_comments_and_activity_log from './20260719_010000_add_comments_and_activity_log';
+import * as migration_20260719_020000_add_mentions_and_notifications from './20260719_020000_add_mentions_and_notifications';
 
 export const migrations = [
   {
@@ -77,5 +80,20 @@ export const migrations = [
     up: migration_20260718_010000_add_project_resources_and_files.up,
     down: migration_20260718_010000_add_project_resources_and_files.down,
     name: '20260718_010000_add_project_resources_and_files'
+  },
+  {
+    up: migration_20260719_000000_add_events_assigned_staff.up,
+    down: migration_20260719_000000_add_events_assigned_staff.down,
+    name: '20260719_000000_add_events_assigned_staff'
+  },
+  {
+    up: migration_20260719_010000_add_comments_and_activity_log.up,
+    down: migration_20260719_010000_add_comments_and_activity_log.down,
+    name: '20260719_010000_add_comments_and_activity_log'
+  },
+  {
+    up: migration_20260719_020000_add_mentions_and_notifications.up,
+    down: migration_20260719_020000_add_mentions_and_notifications.down,
+    name: '20260719_020000_add_mentions_and_notifications'
   },
 ];

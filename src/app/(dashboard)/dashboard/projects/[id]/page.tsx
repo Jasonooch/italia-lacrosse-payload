@@ -10,11 +10,20 @@ import { ProjectDetailsCard, ProjectProgressCard } from '@/components/dashboard/
 import { ProjectTeamCard } from '@/components/dashboard/project-team-card'
 import { NewMilestoneButton, ProjectMilestones } from '@/components/dashboard/project-milestones'
 import { ProjectResourcesCard } from '@/components/dashboard/project-resources'
+import { ProjectActivity } from '@/components/dashboard/project-activity'
 import { Button } from '@/components/dashboard/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/dashboard/ui/tabs'
 
-export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProjectDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ tab?: string }>
+}) {
   const { id } = await params
+  const { tab } = await searchParams
+  const defaultTab = tab === 'activity' || tab === 'milestones' ? tab : 'overview'
 
   const user = await requireDashboardUser()
   const payload = await getPayload({ config })
@@ -39,6 +48,27 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     sort: 'firstName',
     limit: 0,
   })
+
+  const [{ docs: comments }, { docs: activity }] = await Promise.all([
+    payload.find({
+      collection: 'comments',
+      where: { project: { equals: project.id } },
+      user,
+      overrideAccess: false,
+      depth: 1,
+      sort: 'createdAt',
+      limit: 0,
+    }),
+    payload.find({
+      collection: 'activity-log',
+      where: { project: { equals: project.id } },
+      user,
+      overrideAccess: false,
+      depth: 1,
+      sort: '-createdAt',
+      limit: 0,
+    }),
+  ])
 
   const owner = project.owner && typeof project.owner === 'object' ? (project.owner as User) : null
   const team = (project.team ?? []).filter((member): member is User => typeof member === 'object')
@@ -79,9 +109,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <Tabs defaultValue="overview">
+      <Tabs defaultValue={defaultTab}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
         </TabsList>
 
@@ -100,6 +131,16 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
         <TabsContent value="milestones">
           <ProjectMilestones projectId={project.id} milestones={milestones} users={allUsers} />
+        </TabsContent>
+
+        <TabsContent value="activity">
+          <ProjectActivity
+            projectId={project.id}
+            currentUser={user}
+            comments={comments}
+            activity={activity}
+            staff={allUsers}
+          />
         </TabsContent>
       </Tabs>
     </>

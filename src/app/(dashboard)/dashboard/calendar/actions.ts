@@ -14,6 +14,7 @@ export interface EventFormInput {
   allDay?: boolean
   location?: string | null
   team?: number | null
+  assignedStaff?: number[]
   description?: string | null
 }
 
@@ -26,6 +27,7 @@ function toEventData(input: EventFormInput) {
     allDay: input.allDay ?? false,
     location: input.location?.trim() || null,
     team: input.team || null,
+    assignedStaff: input.assignedStaff ?? [],
     description: input.description?.trim() || null,
   }
 }

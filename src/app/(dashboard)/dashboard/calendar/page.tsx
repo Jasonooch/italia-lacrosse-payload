@@ -7,11 +7,12 @@ export default async function CalendarPage() {
   const user = await requireDashboardUser()
   const payload = await getPayload({ config })
 
-  const [{ docs: events }, { docs: tournaments }, { docs: teams }] = await Promise.all([
+  const [{ docs: events }, { docs: tournaments }, { docs: teams }, { docs: staff }] = await Promise.all([
     payload.find({ collection: 'events', user, overrideAccess: false, depth: 0, limit: 0 }),
     payload.find({ collection: 'tournaments', user, overrideAccess: false, depth: 0, limit: 0 }),
     payload.find({ collection: 'teams', user, overrideAccess: false, sort: 'name', limit: 0 }),
+    payload.find({ collection: 'users', user, overrideAccess: false, sort: 'name', limit: 0 }),
   ])
 
-  return <CalendarView events={events} tournaments={tournaments} teams={teams} />
+  return <CalendarView events={events} tournaments={tournaments} teams={teams} staff={staff} />
 }

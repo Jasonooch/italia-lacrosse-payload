@@ -11,6 +11,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
@@ -18,7 +19,13 @@ import {
 } from '@/components/dashboard/ui/sidebar'
 import { navItems } from '@/components/dashboard/nav-items'
 
-export function AppSidebar({ children }: { children?: React.ReactNode }) {
+export function AppSidebar({
+  children,
+  unreadCount = 0,
+}: {
+  children?: React.ReactNode
+  unreadCount?: number
+}) {
   const pathname = usePathname()
   const { setOpenMobile } = useSidebar()
 
@@ -53,6 +60,8 @@ export function AppSidebar({ children }: { children?: React.ReactNode }) {
                     ? pathname === item.url
                     : pathname === item.url || pathname.startsWith(`${item.url}/`)
 
+                const showBadge = item.url === '/dashboard/inbox' && unreadCount > 0
+
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
@@ -61,6 +70,11 @@ export function AppSidebar({ children }: { children?: React.ReactNode }) {
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
+                    {showBadge && (
+                      <SidebarMenuBadge className="bg-primary text-primary-foreground">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </SidebarMenuBadge>
+                    )}
                   </SidebarMenuItem>
                 )
               })}

@@ -1,7 +1,8 @@
-import { CalendarDays, FolderKanban, Inbox, LayoutDashboard, Users } from 'lucide-react'
+import { Bell, CalendarDays, FolderKanban, Inbox, LayoutDashboard, Users } from 'lucide-react'
 
 export const navItems = [
   { title: 'Overview', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Inbox', url: '/dashboard/inbox', icon: Bell },
   { title: 'Projects', url: '/dashboard/projects', icon: FolderKanban },
   { title: 'Contacts', url: '/dashboard/contacts', icon: Users },
   { title: 'Form Submissions', url: '/dashboard/form-submissions', icon: Inbox },

@@ -82,6 +82,15 @@ export const Events: CollectionConfig = {
       },
     },
     {
+      name: 'assignedStaff',
+      type: 'relationship',
+      relationTo: 'users',
+      hasMany: true,
+      admin: {
+        description: 'Staff members assigned to this event.',
+      },
+    },
+    {
       name: 'description',
       type: 'textarea',
     },

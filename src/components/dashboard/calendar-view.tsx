@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react'
 import { addMonths, format, getDaysInMonth, isSameMonth, startOfMonth, subMonths } from 'date-fns'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
-import type { Event, Team, Tournament } from '@/payload-types'
+import type { Event, Team, Tournament, User } from '@/payload-types'
 import { toCalendarItems, type CalendarItem, type EventType } from '@/lib/calendar-display'
 import { createEvent, type EventFormInput } from '@/app/(dashboard)/dashboard/calendar/actions'
 import { Button } from '@/components/dashboard/ui/button'
@@ -22,7 +22,7 @@ import { CalendarMonthGrid } from '@/components/dashboard/calendar-month-grid'
 
 const ALL_TYPES: EventType[] = ['meeting', 'tryout', 'training-camp', 'other', 'tournament']
 
-function NewEventButton({ teams }: { teams: Team[] }) {
+function NewEventButton({ teams, staff }: { teams: Team[]; staff: User[] }) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -50,6 +50,7 @@ function NewEventButton({ teams }: { teams: Team[] }) {
           <CalendarEventForm
             key="new"
             teams={teams}
+            staff={staff}
             submitLabel="Create Event"
             isPending={isPending}
             onSubmit={handleSubmit}
@@ -64,10 +65,12 @@ export function CalendarView({
   events,
   tournaments,
   teams,
+  staff,
 }: {
   events: Event[]
   tournaments: Tournament[]
   teams: Team[]
+  staff: User[]
 }) {
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
   const [activeTypes, setActiveTypes] = useState<Set<EventType>>(() => new Set(ALL_TYPES))
@@ -144,13 +147,19 @@ export function CalendarView({
               </SelectItem>
             </SelectContent>
           </Select>
-          <NewEventButton teams={teams} />
+          <NewEventButton teams={teams} staff={staff} />
         </div>
       </div>
 
       <CalendarMonthGrid currentMonth={currentMonth} items={visibleItems} onSelectItem={handleSelectItem} />
 
-      <CalendarItemSheet item={selectedItem} teams={teams} open={sheetOpen} onOpenChange={setSheetOpen} />
+      <CalendarItemSheet
+        item={selectedItem}
+        teams={teams}
+        staff={staff}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </div>
   )
 }

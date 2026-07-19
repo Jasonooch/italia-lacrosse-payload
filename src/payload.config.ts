@@ -23,6 +23,9 @@ import { Forms } from './collections/Forms'
 import { FormSubmissions } from './collections/FormSubmissions'
 import { Projects } from './collections/Projects'
 import { ProjectFiles } from './collections/ProjectFiles'
+import { Comments } from './collections/Comments'
+import { ActivityLog } from './collections/ActivityLog'
+import { Notifications } from './collections/Notifications'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -81,6 +84,9 @@ export default buildConfig({
     FormSubmissions,
     Projects,
     ProjectFiles,
+    Comments,
+    ActivityLog,
+    Notifications,
   ],
   editor: lexicalEditor(),
   graphQL: {
