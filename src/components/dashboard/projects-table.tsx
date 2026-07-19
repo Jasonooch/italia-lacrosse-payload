@@ -8,7 +8,13 @@ import { StatusBadge } from '@/components/dashboard/project-status-badge'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/dashboard/ui/table'
 
-export function ProjectsTable({ projects }: { projects: Project[] }) {
+export function ProjectsTable({
+  projects,
+  emptyMessage = 'No projects yet.',
+}: {
+  projects: Project[]
+  emptyMessage?: string
+}) {
   const router = useRouter()
 
   return (
@@ -27,7 +33,7 @@ export function ProjectsTable({ projects }: { projects: Project[] }) {
           {projects.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                No projects yet.
+                {emptyMessage}
               </TableCell>
             </TableRow>
           ) : (

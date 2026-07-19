@@ -293,6 +293,105 @@ export async function deleteMilestone(projectId: number, milestoneId: string) {
   revalidatePath('/dashboard/projects')
 }
 
+/** Adds a resource from a FormData payload: `title` plus either a `url` string
+ * or an uploaded `file`. Files land in the staff-only `project-files`
+ * collection and are linked from the project's resources array. */
+export async function addProjectResource(projectId: number, formData: FormData) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  const title = String(formData.get('title') ?? '').trim()
+  if (!title) return
+
+  const url = String(formData.get('url') ?? '').trim()
+  const file = formData.get('file')
+
+  let fileId: number | null = null
+  if (file instanceof File && file.size > 0) {
+    const uploaded = await payload.create({
+      collection: 'project-files',
+      data: {},
+      file: {
+        data: Buffer.from(await file.arrayBuffer()),
+        mimetype: file.type,
+        name: file.name,
+        size: file.size,
+      },
+      user,
+      overrideAccess: false,
+    })
+    fileId = uploaded.id
+  }
+
+  if (!url && fileId == null) return
+
+  const project = await payload.findByID({
+    collection: 'projects',
+    id: projectId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+  })
+
+  await payload.update({
+    collection: 'projects',
+    id: projectId,
+    data: {
+      resources: [
+        ...(project.resources ?? []),
+        { title, url: url || null, file: fileId },
+      ],
+    },
+    user,
+    overrideAccess: false,
+  })
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
+export async function deleteProjectResource(projectId: number, resourceId: string) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  const project = await payload.findByID({
+    collection: 'projects',
+    id: projectId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+  })
+
+  const removed = (project.resources ?? []).find((resource) => resource.id === resourceId)
+  const resources = (project.resources ?? []).filter((resource) => resource.id !== resourceId)
+
+  await payload.update({
+    collection: 'projects',
+    id: projectId,
+    data: { resources },
+    user,
+    overrideAccess: false,
+  })
+
+  // Clean up the underlying upload so R2 doesn't accumulate orphans. Resources
+  // own their files one-to-one, so this can't strand another reference.
+  const removedFileId =
+    removed?.file != null ? (typeof removed.file === 'object' ? removed.file.id : removed.file) : null
+  if (removedFileId != null) {
+    try {
+      await payload.delete({
+        collection: 'project-files',
+        id: removedFileId,
+        user,
+        overrideAccess: false,
+      })
+    } catch {
+      // The resource itself is gone; a failed file cleanup shouldn't surface.
+    }
+  }
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
 /** Persist a new milestone order. `orderedIds` is the full set of milestone
  * ids in the desired order; any id not present is dropped, and unknown ids are
  * ignored, so a stale client can't corrupt the array. */

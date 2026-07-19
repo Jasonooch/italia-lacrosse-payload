@@ -22,6 +22,7 @@ import { Contacts } from './collections/Contacts'
 import { Forms } from './collections/Forms'
 import { FormSubmissions } from './collections/FormSubmissions'
 import { Projects } from './collections/Projects'
+import { ProjectFiles } from './collections/ProjectFiles'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -79,6 +80,7 @@ export default buildConfig({
     Forms,
     FormSubmissions,
     Projects,
+    ProjectFiles,
   ],
   editor: lexicalEditor(),
   graphQL: {
@@ -103,7 +105,7 @@ export default buildConfig({
   plugins: [
     r2Storage({
       bucket: cloudflare.env.R2 as any,
-      collections: { media: true },
+      collections: { media: true, 'project-files': true },
     }),
     seoPlugin({
       collections: [],

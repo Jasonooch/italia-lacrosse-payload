@@ -73,6 +73,36 @@ export const Projects: CollectionConfig = {
       hasMany: true,
     },
     {
+      name: 'resources',
+      type: 'array',
+      labels: { singular: 'Resource', plural: 'Resources' },
+      admin: {
+        description: 'Links (Google Sheets, Drive docs) or uploaded files the team is using.',
+      },
+      fields: [
+        {
+          name: 'title',
+          type: 'text',
+          required: true,
+        },
+        {
+          name: 'url',
+          type: 'text',
+          admin: {
+            description: 'Link to an external resource (Google Sheet, Drive PDF, etc.).',
+          },
+        },
+        {
+          name: 'file',
+          type: 'upload',
+          relationTo: 'project-files',
+          admin: {
+            description: 'Or attach an uploaded file instead of a link.',
+          },
+        },
+      ],
+    },
+    {
       name: 'milestones',
       type: 'array',
       labels: { singular: 'Milestone', plural: 'Milestones' },

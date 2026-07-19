@@ -80,6 +80,7 @@ export interface Config {
     forms: Form;
     'form-submissions': FormSubmission;
     projects: Project;
+    'project-files': ProjectFile;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
@@ -106,6 +107,7 @@ export interface Config {
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    'project-files': ProjectFilesSelect<false> | ProjectFilesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -721,6 +723,23 @@ export interface Project {
   tournament?: (number | null) | Tournament;
   owner?: (number | null) | User;
   team?: (number | User)[] | null;
+  /**
+   * Links (Google Sheets, Drive docs) or uploaded files the team is using.
+   */
+  resources?:
+    | {
+        title: string;
+        /**
+         * Link to an external resource (Google Sheet, Drive PDF, etc.).
+         */
+        url?: string | null;
+        /**
+         * Or attach an uploaded file instead of a link.
+         */
+        file?: (number | null) | ProjectFile;
+        id?: string | null;
+      }[]
+    | null;
   milestones?:
     | {
         title: string;
@@ -732,6 +751,27 @@ export interface Project {
     | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Files attached to dashboard projects.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-files".
+ */
+export interface ProjectFile {
+  id: number;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {};
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -900,6 +940,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'projects';
         value: number | Project;
+      } | null)
+    | ({
+        relationTo: 'project-files';
+        value: number | ProjectFile;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -1291,6 +1335,14 @@ export interface ProjectsSelect<T extends boolean = true> {
   tournament?: T;
   owner?: T;
   team?: T;
+  resources?:
+    | T
+    | {
+        title?: T;
+        url?: T;
+        file?: T;
+        id?: T;
+      };
   milestones?:
     | T
     | {
@@ -1302,6 +1354,24 @@ export interface ProjectsSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "project-files_select".
+ */
+export interface ProjectFilesSelect<T extends boolean = true> {
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+  sizes?: T | {};
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -10,6 +10,7 @@ import * as migration_20260716_194500_add_posts_v_photo_attribution from './2026
 import * as migration_20260717_000000_add_projects from './20260717_000000_add_projects';
 import * as migration_20260717_010000_add_projects_locked_docs_rel from './20260717_010000_add_projects_locked_docs_rel';
 import * as migration_20260718_000000_rename_events_to_tournaments_and_add_events from './20260718_000000_rename_events_to_tournaments_and_add_events';
+import * as migration_20260718_010000_add_project_resources_and_files from './20260718_010000_add_project_resources_and_files';
 
 export const migrations = [
   {
@@ -71,5 +72,10 @@ export const migrations = [
     up: migration_20260718_000000_rename_events_to_tournaments_and_add_events.up,
     down: migration_20260718_000000_rename_events_to_tournaments_and_add_events.down,
     name: '20260718_000000_rename_events_to_tournaments_and_add_events'
+  },
+  {
+    up: migration_20260718_010000_add_project_resources_and_files.up,
+    down: migration_20260718_010000_add_project_resources_and_files.down,
+    name: '20260718_010000_add_project_resources_and_files'
   },
 ];
