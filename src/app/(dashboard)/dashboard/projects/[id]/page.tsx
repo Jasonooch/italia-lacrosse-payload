@@ -9,7 +9,9 @@ import { ProjectStatusControl } from '@/components/dashboard/project-status-cont
 import { ProjectDetailsCard, ProjectProgressCard } from '@/components/dashboard/project-sidebar'
 import { ProjectTeamCard } from '@/components/dashboard/project-team-card'
 import { NewMilestoneButton, ProjectMilestones } from '@/components/dashboard/project-milestones'
+import { ProjectResourcesCard } from '@/components/dashboard/project-resources'
 import { Button } from '@/components/dashboard/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/dashboard/ui/tabs'
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -56,9 +58,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         Back to projects
       </Link>
 
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight">{project.title}</h1>
             <ProjectStatusControl projectId={project.id} status={project.status} />
           </div>
@@ -77,16 +79,29 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="milestones">Milestones</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+              <ProjectProgressCard milestones={milestones} />
+              <ProjectResourcesCard projectId={project.id} resources={project.resources ?? []} />
+            </div>
+            <div className="space-y-6">
+              <ProjectDetailsCard project={project} tournament={tournament} owner={owner} />
+              <ProjectTeamCard projectId={project.id} owner={owner} team={team} allUsers={allUsers} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="milestones">
           <ProjectMilestones projectId={project.id} milestones={milestones} users={allUsers} />
-        </div>
-        <div className="space-y-6">
-          <ProjectProgressCard milestones={milestones} />
-          <ProjectDetailsCard project={project} tournament={tournament} owner={owner} />
-          <ProjectTeamCard projectId={project.id} owner={owner} team={team} allUsers={allUsers} />
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </>
   )
 }

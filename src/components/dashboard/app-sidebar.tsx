@@ -14,11 +14,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/dashboard/ui/sidebar'
 import { navItems } from '@/components/dashboard/nav-items'
 
 export function AppSidebar({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname()
+  const { setOpenMobile } = useSidebar()
 
   return (
     <Sidebar collapsible="icon">
@@ -54,7 +56,7 @@ export function AppSidebar({ children }: { children?: React.ReactNode }) {
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                      <Link href={item.url}>
+                      <Link href={item.url} onClick={() => setOpenMobile(false)}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
