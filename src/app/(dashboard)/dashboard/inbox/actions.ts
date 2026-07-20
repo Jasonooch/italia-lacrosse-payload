@@ -4,6 +4,7 @@ import config from '@payload-config'
 import { getPayload } from 'payload'
 import { revalidatePath } from 'next/cache'
 import { requireDashboardUser } from '@/lib/auth'
+import { fetchGlobalActivityPage, type InboxFeedPage } from '@/lib/inbox-activity'
 
 /** Marks every unread notification for the current user as read. */
 export async function markAllNotificationsRead() {
@@ -42,4 +43,11 @@ export async function markNotificationRead(notificationId: number) {
 
   revalidatePath('/dashboard/inbox')
   revalidatePath('/dashboard', 'layout')
+}
+
+/** Loads the next page of the org-wide "All Activity" stream. */
+export async function loadMoreGlobalActivity(before: string): Promise<InboxFeedPage> {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+  return fetchGlobalActivityPage(payload, user, before)
 }

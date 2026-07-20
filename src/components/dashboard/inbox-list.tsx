@@ -56,15 +56,14 @@ export function InboxList({ items }: { items: InboxItem[] }) {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Inbox</h1>
-        {hasUnread && (
+    <div>
+      {hasUnread && (
+        <div className="mb-3 flex justify-end">
           <Button variant="outline" size="sm" onClick={markAll} disabled={isPending}>
             Mark all as read
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <p className="py-16 text-center text-sm text-muted-foreground">
