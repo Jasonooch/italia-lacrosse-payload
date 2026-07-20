@@ -46,6 +46,12 @@ export const Notifications: CollectionConfig = {
       index: true,
     },
     {
+      name: 'contact',
+      type: 'relationship',
+      relationTo: 'contacts',
+      index: true,
+    },
+    {
       name: 'actor',
       type: 'relationship',
       relationTo: 'users',
@@ -59,6 +65,14 @@ export const Notifications: CollectionConfig = {
       relationTo: 'comments',
       admin: {
         description: 'The comment this notification points at, for mention/comment types.',
+      },
+    },
+    {
+      name: 'contactNote',
+      type: 'relationship',
+      relationTo: 'contact-notes',
+      admin: {
+        description: 'The contact note this notification points at, for mention types.',
       },
     },
     {

@@ -16,9 +16,11 @@ export function projectMemberIds(project: Pick<Project, 'owner' | 'team'>): numb
 interface NotifyInput {
   recipientIds: number[]
   type: Notification['type']
-  projectId: number
+  projectId?: number | null
+  contactId?: number | null
   summary: string
   commentId?: number | null
+  contactNoteId?: number | null
 }
 
 /** Creates one inbox notification per recipient (the actor is always excluded —
@@ -34,9 +36,11 @@ export async function notify(payload: Payload, actor: User, input: NotifyInput):
           data: {
             recipient: recipientId,
             type: input.type,
-            project: input.projectId,
+            project: input.projectId ?? null,
+            contact: input.contactId ?? null,
             actor: actor.id,
             comment: input.commentId ?? null,
+            contactNote: input.contactNoteId ?? null,
             summary: input.summary,
             read: false,
           },

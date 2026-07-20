@@ -67,7 +67,7 @@ function FilterDropdown({
 
 export function ContactsFilters() {
   return (
-    <div className="mb-4 flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2">
       <FilterDropdown paramName="type" label="Type" allLabel="All types" options={CONTACT_TYPE_LABELS} />
       <FilterDropdown
         paramName="program"

@@ -8,6 +8,8 @@ import { Badge } from '@/components/dashboard/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card'
 import { CopyEmailButton } from '@/components/dashboard/copy-email-button'
 import { StatusBadge } from '@/components/dashboard/status-badge'
+import { EditContactDialog } from '@/components/dashboard/edit-contact-dialog'
+import { ContactNotes } from '@/components/dashboard/contact-notes'
 import {
   CITIZENSHIP_LABELS,
   CITIZENSHIP_STYLES,
@@ -59,6 +61,25 @@ export default async function ContactDetailPage({
     notFound()
   }
 
+  const [{ docs: notes }, { docs: staff }] = await Promise.all([
+    payload.find({
+      collection: 'contact-notes',
+      where: { contact: { equals: contact.id } },
+      user,
+      overrideAccess: false,
+      depth: 1,
+      sort: '-createdAt',
+      limit: 0,
+    }),
+    payload.find({
+      collection: 'users',
+      user,
+      overrideAccess: false,
+      sort: 'firstName',
+      limit: 0,
+    }),
+  ])
+
   const isYouth = contact.program === 'boys-youth' || contact.program === 'girls-youth'
   const address = contact.address
   const hasAddress = Boolean(
@@ -92,6 +113,7 @@ export default async function ContactDetailPage({
             {contact.citizenship ? CITIZENSHIP_LABELS[contact.citizenship] : 'Citizenship —'}
           </Badge>
           {contact.status && <StatusBadge status={contact.status} />}
+          <EditContactDialog contact={contact} />
         </div>
       </div>
 
@@ -236,13 +258,18 @@ export default async function ContactDetailPage({
         {contact.notes && (
           <Card>
             <CardHeader>
-              <CardTitle>Notes</CardTitle>
+              <CardTitle>Legacy notes</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="whitespace-pre-wrap break-words text-sm">{contact.notes}</p>
             </CardContent>
           </Card>
         )}
+      </div>
+
+      <div className="mt-6">
+        <h2 className="mb-3 text-lg font-semibold tracking-tight">Notes</h2>
+        <ContactNotes contactId={contact.id} currentUser={user} notes={notes} staff={staff} />
       </div>
 
       <p className="mt-6 text-xs text-muted-foreground">

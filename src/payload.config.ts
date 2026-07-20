@@ -19,6 +19,7 @@ import { Players } from './collections/Players'
 import { Events } from './collections/Events'
 import { Tournaments } from './collections/Tournaments'
 import { Contacts } from './collections/Contacts'
+import { ContactNotes } from './collections/ContactNotes'
 import { Forms } from './collections/Forms'
 import { FormSubmissions } from './collections/FormSubmissions'
 import { Projects } from './collections/Projects'
@@ -78,6 +79,7 @@ export default buildConfig({
     Players,
     Coaches,
     Contacts,
+    ContactNotes,
     Users,
     Media,
     Forms,

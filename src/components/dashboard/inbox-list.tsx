@@ -15,6 +15,8 @@ export interface InboxItem {
   actorName: string
   projectId: number | null
   projectTitle: string | null
+  contactId: number | null
+  contactTitle: string | null
   createdAt: string
   read: boolean
 }
@@ -39,7 +41,11 @@ export function InboxList({ items }: { items: InboxItem[] }) {
   function openItem(item: InboxItem) {
     startTransition(async () => {
       if (!item.read) await markNotificationRead(item.id)
-      if (item.projectId) router.push(`/dashboard/projects/${item.projectId}?tab=activity`)
+      if (item.projectId) {
+        router.push(`/dashboard/projects/${item.projectId}?tab=activity`)
+      } else if (item.contactId) {
+        router.push(`/dashboard/contacts/${item.contactId}`)
+      }
     })
   }
 
@@ -84,8 +90,10 @@ export function InboxList({ items }: { items: InboxItem[] }) {
                   <p className="text-sm">
                     <span className="font-medium">{item.actorName}</span> {item.summary}
                   </p>
-                  {item.projectTitle && (
-                    <p className="truncate text-xs text-muted-foreground">{item.projectTitle}</p>
+                  {(item.projectTitle || item.contactTitle) && (
+                    <p className="truncate text-xs text-muted-foreground">
+                      {item.projectTitle || item.contactTitle}
+                    </p>
                   )}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">

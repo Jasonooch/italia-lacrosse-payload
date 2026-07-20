@@ -14,6 +14,8 @@ import * as migration_20260718_010000_add_project_resources_and_files from './20
 import * as migration_20260719_000000_add_events_assigned_staff from './20260719_000000_add_events_assigned_staff';
 import * as migration_20260719_010000_add_comments_and_activity_log from './20260719_010000_add_comments_and_activity_log';
 import * as migration_20260719_020000_add_mentions_and_notifications from './20260719_020000_add_mentions_and_notifications';
+import * as migration_20260720_000000_add_contact_notes from './20260720_000000_add_contact_notes';
+import * as migration_20260720_010000_add_contact_note_mentions from './20260720_010000_add_contact_note_mentions';
 
 export const migrations = [
   {
@@ -95,5 +97,15 @@ export const migrations = [
     up: migration_20260719_020000_add_mentions_and_notifications.up,
     down: migration_20260719_020000_add_mentions_and_notifications.down,
     name: '20260719_020000_add_mentions_and_notifications'
+  },
+  {
+    up: migration_20260720_000000_add_contact_notes.up,
+    down: migration_20260720_000000_add_contact_notes.down,
+    name: '20260720_000000_add_contact_notes'
+  },
+  {
+    up: migration_20260720_010000_add_contact_note_mentions.up,
+    down: migration_20260720_010000_add_contact_note_mentions.down,
+    name: '20260720_010000_add_contact_note_mentions'
   },
 ];

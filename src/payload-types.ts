@@ -75,6 +75,7 @@ export interface Config {
     players: Player;
     coaches: Coach;
     contacts: Contact;
+    'contact-notes': ContactNote;
     users: User;
     media: Media;
     forms: Form;
@@ -105,6 +106,7 @@ export interface Config {
     players: PlayersSelect<false> | PlayersSelect<true>;
     coaches: CoachesSelect<false> | CoachesSelect<true>;
     contacts: ContactsSelect<false> | ContactsSelect<true>;
+    'contact-notes': ContactNotesSelect<false> | ContactNotesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -718,6 +720,22 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-notes".
+ */
+export interface ContactNote {
+  id: number;
+  contact: number | Contact;
+  author: number | User;
+  body: string;
+  /**
+   * Staff @-mentioned in the body; each gets an inbox notification.
+   */
+  mentions?: (number | User)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
  */
 export interface Project {
@@ -838,6 +856,7 @@ export interface Notification {
   recipient: number | User;
   type: 'mention' | 'comment' | 'project-activity';
   project?: (number | null) | Project;
+  contact?: (number | null) | Contact;
   /**
    * Who triggered this notification.
    */
@@ -846,6 +865,10 @@ export interface Notification {
    * The comment this notification points at, for mention/comment types.
    */
   comment?: (number | null) | Comment;
+  /**
+   * The contact note this notification points at, for mention types.
+   */
+  contactNote?: (number | null) | ContactNote;
   /**
    * Display sentence, e.g. "mentioned you in Fall Fundraising".
    */
@@ -1001,6 +1024,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'contacts';
         value: number | Contact;
+      } | null)
+    | ({
+        relationTo: 'contact-notes';
+        value: number | ContactNote;
       } | null)
     | ({
         relationTo: 'users';
@@ -1256,6 +1283,18 @@ export interface ContactsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-notes_select".
+ */
+export interface ContactNotesSelect<T extends boolean = true> {
+  contact?: T;
+  author?: T;
+  body?: T;
+  mentions?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -1500,8 +1539,10 @@ export interface NotificationsSelect<T extends boolean = true> {
   recipient?: T;
   type?: T;
   project?: T;
+  contact?: T;
   actor?: T;
   comment?: T;
+  contactNote?: T;
   summary?: T;
   read?: T;
   updatedAt?: T;

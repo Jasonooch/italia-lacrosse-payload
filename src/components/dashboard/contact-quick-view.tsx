@@ -16,10 +16,21 @@ import { StatusBadge } from '@/components/dashboard/status-badge'
 import { CopyEmailButton } from '@/components/dashboard/copy-email-button'
 import {
   CONTACT_TYPE_LABELS,
+  LINEAGE_LABELS,
+  POSITION_LABELS,
   PROGRAM_LABELS,
   getContactSubtitle,
   getInitials,
 } from '@/lib/contact-display'
+
+function formatDate(value?: string | null) {
+  if (!value) return undefined
+  return new Date(value).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
 
 function QuickField({ label, value }: { label: string; value?: React.ReactNode }) {
   if (value == null || value === '') return null
@@ -92,7 +103,50 @@ export function ContactQuickView({
                   value={contact.program ? PROGRAM_LABELS[contact.program] : undefined}
                 />
               </div>
+
+              {contact.contactType === 'player' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <QuickField
+                    label="Position"
+                    value={contact.position ? POSITION_LABELS[contact.position] : undefined}
+                  />
+                  <QuickField label="Date of birth" value={formatDate(contact.dateOfBirth)} />
+                  <QuickField label="High school" value={contact.highSchool} />
+                  <QuickField label="College" value={contact.college} />
+                  <QuickField label="Graduation year" value={contact.graduationYear} />
+                </div>
+              )}
+
+              {contact.contactType === 'coach' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <QuickField label="College" value={contact.college} />
+                </div>
+              )}
+
+              {contact.contactType === 'coach' && (
+                <QuickField label="Coaching experience" value={contact.coachingExperience} />
+              )}
+              {contact.contactType === 'donor' && (
+                <QuickField label="Involvement" value={contact.involvement} />
+              )}
+
+              <QuickField
+                label="Lineage"
+                value={contact.lineage ? LINEAGE_LABELS[contact.lineage] : undefined}
+              />
+
+              {(contact.address?.city || contact.address?.state) && (
+                <QuickField
+                  label="Location"
+                  value={[contact.address?.city, contact.address?.state].filter(Boolean).join(', ')}
+                />
+              )}
+
               <QuickField label="Notes" value={contact.notes} />
+
+              <p className="text-xs text-muted-foreground">
+                Added {formatDate(contact.createdAt)} · Updated {formatDate(contact.updatedAt)}
+              </p>
             </div>
 
             <SheetFooter>
