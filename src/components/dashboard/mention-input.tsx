@@ -32,6 +32,8 @@ export function MentionInput({
   placeholder,
   className,
   singleLine = false,
+  initialValue = '',
+  initialMentionIds = [],
   onChange,
   onSubmit,
 }: {
@@ -39,12 +41,21 @@ export function MentionInput({
   placeholder?: string
   className?: string
   singleLine?: boolean
+  initialValue?: string
+  initialMentionIds?: number[]
   onChange: (body: string, mentionIds: number[]) => void
   onSubmit?: () => void
 }) {
-  const [body, setBody] = useState('')
+  const [body, setBody] = useState(initialValue)
   const [menu, setMenu] = useState<{ at: number; query: string } | null>(null)
-  const mentionedRef = useRef<Map<number, string>>(new Map())
+  const mentionedRef = useRef<Map<number, string>>(
+    new Map(
+      initialMentionIds
+        .map((id) => staff.find((person) => person.id === id))
+        .filter((person): person is User => Boolean(person))
+        .map((person) => [person.id, mentionLabel(person)]),
+    ),
+  )
   const ref = useRef<HTMLTextAreaElement>(null)
 
   const matches = menu

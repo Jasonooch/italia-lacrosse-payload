@@ -564,6 +564,43 @@ export async function addComment(
   revalidatePath(`/dashboard/projects/${projectId}`)
 }
 
+/** Edit a comment's body/mentions. Only the author may edit their own. */
+export async function editComment(
+  commentId: number,
+  projectId: number,
+  body: string,
+  mentionIds: number[] = [],
+) {
+  const user = await requireDashboardUser()
+  const trimmed = body.trim()
+  if (!trimmed) return
+
+  const payload = await getPayload({ config })
+
+  const comment = await payload.findByID({
+    collection: 'comments',
+    id: commentId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+    disableErrors: true,
+  })
+
+  if (!comment) return
+  const authorId = typeof comment.author === 'object' ? comment.author.id : comment.author
+  if (authorId !== user.id) return
+
+  await payload.update({
+    collection: 'comments',
+    id: commentId,
+    data: { body: trimmed, mentions: [...new Set(mentionIds)] },
+    user,
+    overrideAccess: false,
+  })
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
 /** Delete a comment. Only the author may remove their own; any reply threads
  * left orphaned are dropped by the caller's re-fetch (their `parent` FK is set
  * null on delete). */

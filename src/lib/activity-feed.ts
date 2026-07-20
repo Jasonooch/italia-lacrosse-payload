@@ -5,6 +5,7 @@ export interface ReplyNode {
   createdAt: string
   author: User | null
   body: string
+  mentions: number[]
 }
 
 export interface CommentNode {
@@ -13,6 +14,7 @@ export interface CommentNode {
   createdAt: string
   author: User | null
   body: string
+  mentions: number[]
   replies: ReplyNode[]
 }
 
@@ -36,6 +38,10 @@ function parentIdOf(comment: Comment): number | null {
   return typeof comment.parent === 'object' ? comment.parent.id : comment.parent
 }
 
+function mentionIdsOf(comment: Comment): number[] {
+  return (comment.mentions ?? []).map((mention) => (typeof mention === 'object' ? mention.id : mention))
+}
+
 /** Merges comments and activity entries into one feed sorted newest-first.
  * Comments with a `parent` are nested as one-level replies under their parent
  * (oldest-first within a thread, like a conversation); activity entries and
@@ -51,6 +57,7 @@ export function buildFeed(comments: Comment[], activity: ActivityLog[]): FeedIte
       createdAt: comment.createdAt,
       author: asUser(comment.author),
       body: comment.body,
+      mentions: mentionIdsOf(comment),
     })
     repliesByParent.set(parentId, list)
   }
@@ -66,6 +73,7 @@ export function buildFeed(comments: Comment[], activity: ActivityLog[]): FeedIte
       createdAt: comment.createdAt,
       author: asUser(comment.author),
       body: comment.body,
+      mentions: mentionIdsOf(comment),
       replies: repliesByParent.get(comment.id) ?? [],
     }))
 

@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Package,
   Paperclip,
+  Pencil,
   Trash2,
   Users,
   type LucideIcon,
@@ -16,7 +17,7 @@ import {
 import type { ActivityLog, Comment, User } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
 import { buildFeed, type ActivityNode, type CommentNode, type ReplyNode } from '@/lib/activity-feed'
-import { addComment, deleteComment } from '@/app/(dashboard)/dashboard/projects/actions'
+import { addComment, deleteComment, editComment } from '@/app/(dashboard)/dashboard/projects/actions'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { Button } from '@/components/dashboard/ui/button'
 import { MentionInput, mentionLabel } from '@/components/dashboard/mention-input'
@@ -105,7 +106,7 @@ function CommentComposer({ projectId, staff }: { projectId: number; staff: User[
   }
 
   return (
-    <div className="rounded-lg border focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+    <div className="rounded-lg border bg-card shadow-sm focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
       <div className="px-4 py-3">
         <MentionInput
           key={resetKey}
@@ -169,9 +170,47 @@ function ReplyBox({
   )
 }
 
-function Reply({ reply, staff }: { reply: ReplyNode; staff: User[] }) {
+function Reply({
+  reply,
+  projectId,
+  currentUser,
+  staff,
+}: {
+  reply: ReplyNode
+  projectId: number
+  currentUser: User
+  staff: User[]
+}) {
+  const [isPending, startTransition] = useTransition()
+  const [isEditing, setIsEditing] = useState(false)
+  const [editDraft, setEditDraft] = useState<{ body: string; mentionIds: number[] }>({
+    body: reply.body,
+    mentionIds: reply.mentions,
+  })
+  const isAuthor = reply.author?.id === currentUser.id
+  const canDelete = isAuthor || Boolean(currentUser.roles?.includes('admin'))
+
+  function handleDelete() {
+    startTransition(async () => {
+      await deleteComment(reply.id, projectId)
+    })
+  }
+
+  function startEdit() {
+    setEditDraft({ body: reply.body, mentionIds: reply.mentions })
+    setIsEditing(true)
+  }
+
+  function handleSaveEdit() {
+    if (!editDraft.body.trim()) return
+    startTransition(async () => {
+      await editComment(reply.id, projectId, editDraft.body, editDraft.mentionIds)
+      setIsEditing(false)
+    })
+  }
+
   return (
-    <div className="flex items-start gap-2 px-3 py-2">
+    <div className="group flex items-start gap-2 py-2 pr-3 pl-8">
       <Avatar size="sm" className="mt-0.5">
         <AvatarFallback>{getInitials(reply.author?.firstName, reply.author?.lastName)}</AvatarFallback>
       </Avatar>
@@ -180,10 +219,59 @@ function Reply({ reply, staff }: { reply: ReplyNode; staff: User[] }) {
           <span className="font-medium">{personName(reply.author)}</span>{' '}
           <RelativeTime iso={reply.createdAt} />
         </p>
-        <p className="mt-0.5 text-sm whitespace-pre-wrap break-words">
-          <MentionText text={reply.body} staff={staff} />
-        </p>
+        {isEditing ? (
+          <div className="mt-1">
+            <MentionInput
+              staff={staff}
+              initialValue={reply.body}
+              initialMentionIds={reply.mentions}
+              className="min-h-16"
+              onChange={(body, mentionIds) => setEditDraft({ body, mentionIds })}
+            />
+            <div className="mt-2 flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsEditing(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveEdit}
+                disabled={!editDraft.body.trim() || isPending}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-0.5 text-sm whitespace-pre-wrap break-words">
+            <MentionText text={reply.body} staff={staff} />
+          </p>
+        )}
       </div>
+      {!isEditing && (isAuthor || canDelete) && (
+        <div className="flex items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100">
+          {isAuthor && (
+            <Button variant="ghost" size="icon-xs" aria-label="Edit reply" onClick={startEdit}>
+              <Pencil className="size-3.5" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label="Delete reply"
+              onClick={handleDelete}
+              disabled={isPending}
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -200,8 +288,13 @@ function CommentCard({
   staff: User[]
 }) {
   const [isPending, startTransition] = useTransition()
-  const canDelete =
-    comment.author?.id === currentUser.id || Boolean(currentUser.roles?.includes('admin'))
+  const [isEditing, setIsEditing] = useState(false)
+  const [editDraft, setEditDraft] = useState<{ body: string; mentionIds: number[] }>({
+    body: comment.body,
+    mentionIds: comment.mentions,
+  })
+  const isAuthor = comment.author?.id === currentUser.id
+  const canDelete = isAuthor || Boolean(currentUser.roles?.includes('admin'))
 
   function handleDelete() {
     startTransition(async () => {
@@ -209,8 +302,21 @@ function CommentCard({
     })
   }
 
+  function startEdit() {
+    setEditDraft({ body: comment.body, mentionIds: comment.mentions })
+    setIsEditing(true)
+  }
+
+  function handleSaveEdit() {
+    if (!editDraft.body.trim()) return
+    startTransition(async () => {
+      await editComment(comment.id, projectId, editDraft.body, editDraft.mentionIds)
+      setIsEditing(false)
+    })
+  }
+
   return (
-    <div className="rounded-lg border">
+    <div className="rounded-lg border bg-card shadow-sm">
       <div className="group flex items-start gap-2 px-3 pt-3 pb-2">
         <Avatar size="sm" className="mt-0.5">
           <AvatarFallback>
@@ -222,27 +328,75 @@ function CommentCard({
             <span className="font-medium">{personName(comment.author)}</span>{' '}
             <RelativeTime iso={comment.createdAt} />
           </p>
-          <p className="mt-0.5 text-sm whitespace-pre-wrap break-words">
-            <MentionText text={comment.body} staff={staff} />
-          </p>
+          {isEditing ? (
+            <div className="mt-1">
+              <MentionInput
+                staff={staff}
+                initialValue={comment.body}
+                initialMentionIds={comment.mentions}
+                className="min-h-16"
+                onChange={(body, mentionIds) => setEditDraft({ body, mentionIds })}
+              />
+              <div className="mt-2 flex justify-end gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsEditing(false)}
+                  disabled={isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveEdit}
+                  disabled={!editDraft.body.trim() || isPending}
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-0.5 text-sm whitespace-pre-wrap break-words">
+              <MentionText text={comment.body} staff={staff} />
+            </p>
+          )}
         </div>
-        {canDelete && (
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            aria-label="Delete comment"
-            onClick={handleDelete}
-            disabled={isPending}
-            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
+        {!isEditing && (isAuthor || canDelete) && (
+          <div className="flex items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100">
+            {isAuthor && (
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Edit comment"
+                onClick={startEdit}
+              >
+                <Pencil className="size-3.5" />
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                aria-label="Delete comment"
+                onClick={handleDelete}
+                disabled={isPending}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            )}
+          </div>
         )}
       </div>
       {comment.replies.length > 0 && (
         <div className="border-t">
           {comment.replies.map((reply) => (
-            <Reply key={reply.id} reply={reply} staff={staff} />
+            <Reply
+              key={reply.id}
+              reply={reply}
+              projectId={projectId}
+              currentUser={currentUser}
+              staff={staff}
+            />
           ))}
         </div>
       )}
