@@ -109,40 +109,40 @@ export default async function ProjectDetailPage({
         </div>
       </div>
 
-      <Tabs defaultValue={defaultTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="milestones">Milestones</TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Tabs defaultValue={defaultTab}>
+            <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="milestones">Milestones</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="space-y-6 lg:col-span-2">
+            <TabsContent value="overview" className="space-y-6">
               <ProjectProgressCard milestones={milestones} />
               <ProjectResourcesCard projectId={project.id} resources={project.resources ?? []} />
-            </div>
-            <div className="space-y-6">
-              <ProjectDetailsCard project={project} tournament={tournament} owner={owner} />
-              <ProjectTeamCard projectId={project.id} owner={owner} team={team} allUsers={allUsers} />
-            </div>
-          </div>
-        </TabsContent>
+            </TabsContent>
 
-        <TabsContent value="milestones">
-          <ProjectMilestones projectId={project.id} milestones={milestones} users={allUsers} />
-        </TabsContent>
+            <TabsContent value="milestones">
+              <ProjectMilestones projectId={project.id} milestones={milestones} users={allUsers} />
+            </TabsContent>
 
-        <TabsContent value="activity">
-          <ProjectActivity
-            projectId={project.id}
-            currentUser={user}
-            comments={comments}
-            activity={activity}
-            staff={allUsers}
-          />
-        </TabsContent>
-      </Tabs>
+            <TabsContent value="activity">
+              <ProjectActivity
+                projectId={project.id}
+                currentUser={user}
+                comments={comments}
+                activity={activity}
+                staff={allUsers}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+        <div className="space-y-6">
+          <ProjectDetailsCard project={project} tournament={tournament} owner={owner} />
+          <ProjectTeamCard projectId={project.id} owner={owner} team={team} allUsers={allUsers} />
+        </div>
+      </div>
     </>
   )
 }

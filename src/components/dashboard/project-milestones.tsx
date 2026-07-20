@@ -363,25 +363,10 @@ export function NewMilestoneButton({ projectId, users }: { projectId: number; us
   )
 }
 
-function ViewTabs({ completed, total }: { completed: number; total: number }) {
+function MilestonesSummary({ completed, total }: { completed: number; total: number }) {
   return (
-    <div className="mb-3 flex items-center justify-between border-b">
-      <div className="flex items-center gap-1">
-        <span className="border-b-2 border-foreground px-1 pb-2 text-sm font-medium">List</span>
-        <span
-          title="Coming soon"
-          className="cursor-not-allowed px-1 pb-2 text-sm text-muted-foreground/50"
-        >
-          Board
-        </span>
-        <span
-          title="Coming soon"
-          className="cursor-not-allowed px-1 pb-2 text-sm text-muted-foreground/50"
-        >
-          Timeline
-        </span>
-      </div>
-      <span className="pb-2 text-xs text-muted-foreground">
+    <div className="mb-3 flex items-center justify-end border-b pb-2">
+      <span className="text-xs text-muted-foreground">
         {total === 0 ? 'No milestones yet' : `${completed} of ${total} milestones complete`}
       </span>
     </div>
@@ -437,7 +422,7 @@ export function ProjectMilestones({
 
   return (
     <div>
-      <ViewTabs completed={completed} total={items.length} />
+      <MilestonesSummary completed={completed} total={items.length} />
       <div className="rounded-lg border">
         {items.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">No milestones yet.</p>

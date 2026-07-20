@@ -435,7 +435,7 @@ export function ProjectActivity({
   const feed = buildFeed(comments, activity)
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="space-y-4">
       <CommentComposer projectId={projectId} staff={staff} />
 
       {feed.length === 0 ? (
