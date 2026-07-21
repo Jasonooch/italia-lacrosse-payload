@@ -17,7 +17,12 @@ import {
 import type { ActivityLog, Comment, User } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
 import { buildFeed, type ActivityNode, type CommentNode, type ReplyNode } from '@/lib/activity-feed'
-import { addComment, deleteComment, editComment } from '@/app/(dashboard)/dashboard/projects/actions'
+import {
+  addComment,
+  deleteComment,
+  editComment,
+  loadMoreProjectActivity,
+} from '@/app/(dashboard)/dashboard/projects/actions'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { Button } from '@/components/dashboard/ui/button'
 import { MentionInput } from '@/components/dashboard/mention-input'
@@ -392,17 +397,38 @@ function ActivityRow({ node }: { node: ActivityNode }) {
 export function ProjectActivity({
   projectId,
   currentUser,
-  comments,
-  activity,
+  initialComments,
+  initialActivity,
+  initialCursor,
   staff,
 }: {
   projectId: number
   currentUser: User
-  comments: Comment[]
-  activity: ActivityLog[]
+  initialComments: Comment[]
+  initialActivity: ActivityLog[]
+  initialCursor: string | null
   staff: User[]
 }) {
-  const feed = buildFeed(comments, activity)
+  const [cursor, setCursor] = useState(initialCursor)
+  const [olderComments, setOlderComments] = useState<Comment[]>([])
+  const [olderActivity, setOlderActivity] = useState<ActivityLog[]>([])
+  const [isLoadingMore, startLoadMore] = useTransition()
+
+  // First page comes straight from server props, so it stays live across
+  // add/edit/delete (each triggers revalidatePath, refreshing these props).
+  // Older pages are appended client-side and won't reflect edits/deletes made
+  // to them after loading — an accepted tradeoff, same as the inbox feed.
+  const feed = [...buildFeed(initialComments, initialActivity), ...buildFeed(olderComments, olderActivity)]
+
+  function loadMore() {
+    if (!cursor) return
+    startLoadMore(async () => {
+      const next = await loadMoreProjectActivity(projectId, cursor)
+      setOlderComments((prev) => [...prev, ...next.comments])
+      setOlderActivity((prev) => [...prev, ...next.activity])
+      setCursor(next.nextCursor)
+    })
+  }
 
   return (
     <div className="space-y-4">
@@ -427,6 +453,14 @@ export function ProjectActivity({
               <ActivityRow key={`activity-${item.id}`} node={item} />
             ),
           )}
+        </div>
+      )}
+
+      {cursor && (
+        <div className="flex justify-center">
+          <Button variant="outline" size="sm" onClick={loadMore} disabled={isLoadingMore}>
+            {isLoadingMore ? 'Loading…' : 'Load more'}
+          </Button>
         </div>
       )}
     </div>

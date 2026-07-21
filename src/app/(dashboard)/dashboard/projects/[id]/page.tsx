@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Pencil } from 'lucide-react'
 import type { Tournament, User } from '@/payload-types'
 import { requireDashboardUser } from '@/lib/auth'
+import { fetchProjectActivityPage } from '@/lib/activity-feed'
 import { ProjectStatusControl } from '@/components/dashboard/project-status-control'
 import { ProjectDetailsCard, ProjectProgressCard } from '@/components/dashboard/project-sidebar'
 import { ProjectTeamCard } from '@/components/dashboard/project-team-card'
@@ -49,26 +50,7 @@ export default async function ProjectDetailPage({
     limit: 0,
   })
 
-  const [{ docs: comments }, { docs: activity }] = await Promise.all([
-    payload.find({
-      collection: 'comments',
-      where: { project: { equals: project.id } },
-      user,
-      overrideAccess: false,
-      depth: 1,
-      sort: 'createdAt',
-      limit: 0,
-    }),
-    payload.find({
-      collection: 'activity-log',
-      where: { project: { equals: project.id } },
-      user,
-      overrideAccess: false,
-      depth: 1,
-      sort: '-createdAt',
-      limit: 0,
-    }),
-  ])
+  const initialActivityPage = await fetchProjectActivityPage(payload, user, project.id)
 
   const owner = project.owner && typeof project.owner === 'object' ? (project.owner as User) : null
   const team = (project.team ?? []).filter((member): member is User => typeof member === 'object')
@@ -131,8 +113,9 @@ export default async function ProjectDetailPage({
               <ProjectActivity
                 projectId={project.id}
                 currentUser={user}
-                comments={comments}
-                activity={activity}
+                initialComments={initialActivityPage.comments}
+                initialActivity={initialActivityPage.activity}
+                initialCursor={initialActivityPage.nextCursor}
                 staff={allUsers}
               />
             </TabsContent>

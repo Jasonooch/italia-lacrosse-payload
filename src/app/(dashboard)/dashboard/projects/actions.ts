@@ -12,6 +12,7 @@ import {
   type ProjectStatus,
 } from '@/lib/project-display'
 import { actorName, logActivity } from '@/lib/activity'
+import { fetchProjectActivityPage } from '@/lib/activity-feed'
 import { notify, projectMemberIds } from '@/lib/notifications'
 
 export interface ProjectFormInput {
@@ -421,6 +422,87 @@ export async function addProjectResource(projectId: number, formData: FormData) 
   revalidatePath(`/dashboard/projects/${projectId}`)
 }
 
+/** Edits a resource in place: `title` always updates; a new `file` or a
+ * non-empty `url` replaces the existing source (and orphans the old upload,
+ * if any), while leaving both blank keeps the current source untouched. */
+export async function editProjectResource(projectId: number, resourceId: string, formData: FormData) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+
+  const title = String(formData.get('title') ?? '').trim()
+  if (!title) return
+
+  const url = String(formData.get('url') ?? '').trim()
+  const file = formData.get('file')
+
+  const project = await payload.findByID({
+    collection: 'projects',
+    id: projectId,
+    user,
+    overrideAccess: false,
+    depth: 0,
+  })
+
+  const existing = (project.resources ?? []).find((resource) => resource.id === resourceId)
+  if (!existing) return
+
+  const existingFileId =
+    existing.file != null ? (typeof existing.file === 'object' ? existing.file.id : existing.file) : null
+
+  let fileId = existingFileId
+  let nextUrl = existing.url ?? null
+  let staleFileId: number | null = null
+
+  if (file instanceof File && file.size > 0) {
+    const uploaded = await payload.create({
+      collection: 'project-files',
+      data: {},
+      file: {
+        data: Buffer.from(await file.arrayBuffer()),
+        mimetype: file.type,
+        name: file.name,
+        size: file.size,
+      },
+      user,
+      overrideAccess: false,
+    })
+    fileId = uploaded.id
+    nextUrl = null
+    staleFileId = existingFileId
+  } else if (url) {
+    fileId = null
+    nextUrl = url
+    staleFileId = existingFileId
+  }
+
+  const resources = (project.resources ?? []).map((resource) =>
+    resource.id === resourceId ? { ...resource, title, url: nextUrl, file: fileId } : resource,
+  )
+
+  await payload.update({
+    collection: 'projects',
+    id: projectId,
+    data: { resources },
+    user,
+    overrideAccess: false,
+  })
+
+  if (staleFileId != null) {
+    try {
+      await payload.delete({
+        collection: 'project-files',
+        id: staleFileId,
+        user,
+        overrideAccess: false,
+      })
+    } catch {
+      // The resource itself already updated; a failed cleanup shouldn't surface.
+    }
+  }
+
+  revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
 export async function deleteProjectResource(projectId: number, resourceId: string) {
   const user = await requireDashboardUser()
   const payload = await getPayload({ config })
@@ -599,6 +681,13 @@ export async function editComment(
   })
 
   revalidatePath(`/dashboard/projects/${projectId}`)
+}
+
+/** Loads the next page of a project's Activity tab, older than `before`. */
+export async function loadMoreProjectActivity(projectId: number, before: string) {
+  const user = await requireDashboardUser()
+  const payload = await getPayload({ config })
+  return fetchProjectActivityPage(payload, user, projectId, before)
 }
 
 /** Delete a comment. Only the author may remove their own; any reply threads
