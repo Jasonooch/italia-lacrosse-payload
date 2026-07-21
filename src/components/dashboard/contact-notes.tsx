@@ -12,7 +12,8 @@ import {
 } from '@/app/(dashboard)/dashboard/contacts/actions'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { Button } from '@/components/dashboard/ui/button'
-import { MentionInput, mentionLabel } from '@/components/dashboard/mention-input'
+import { MentionInput } from '@/components/dashboard/mention-input'
+import { MentionText } from '@/lib/render-mention-text'
 
 function personName(user: User | null): string {
   if (!user) return 'Someone'
@@ -21,37 +22,6 @@ function personName(user: User | null): string {
 
 function mentionIdsOf(mentions: ContactNote['mentions']): number[] {
   return (mentions ?? []).map((mention) => (typeof mention === 'object' ? mention.id : mention))
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-/** Renders note text with any `@Name` that matches a known staff member
- * highlighted. Display-only — matching is by name against the staff list. */
-function MentionText({ text, staff }: { text: string; staff: User[] }) {
-  const names = staff
-    .map(mentionLabel)
-    .filter(Boolean)
-    .sort((a, b) => b.length - a.length)
-  if (names.length === 0) return <>{text}</>
-
-  const pattern = new RegExp(`@(?:${names.map(escapeRegExp).join('|')})`, 'g')
-  const parts: React.ReactNode[] = []
-  let lastIndex = 0
-  let match: RegExpExecArray | null
-  let key = 0
-  while ((match = pattern.exec(text)) !== null) {
-    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index))
-    parts.push(
-      <span key={key++} className="rounded bg-primary/10 px-0.5 font-medium text-primary">
-        {match[0]}
-      </span>,
-    )
-    lastIndex = match.index + match[0].length
-  }
-  if (lastIndex < text.length) parts.push(text.slice(lastIndex))
-  return <>{parts}</>
 }
 
 /** Absolute date on first paint (matches SSR), then swaps to a relative label
