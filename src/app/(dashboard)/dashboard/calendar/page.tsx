@@ -1,6 +1,7 @@
 import config from '@payload-config'
 import { getPayload } from 'payload'
 import { requireDashboardUser } from '@/lib/auth'
+import { toStaffUsers } from '@/lib/staff'
 import { CalendarView } from '@/components/dashboard/calendar-view'
 
 export default async function CalendarPage() {
@@ -14,5 +15,5 @@ export default async function CalendarPage() {
     payload.find({ collection: 'users', user, overrideAccess: false, sort: 'name', limit: 0 }),
   ])
 
-  return <CalendarView events={events} tournaments={tournaments} teams={teams} staff={staff} />
+  return <CalendarView events={events} tournaments={tournaments} teams={teams} staff={toStaffUsers(staff)} />
 }

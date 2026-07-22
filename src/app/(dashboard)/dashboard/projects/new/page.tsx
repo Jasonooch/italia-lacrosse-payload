@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { requireDashboardUser } from '@/lib/auth'
+import { toStaffUsers } from '@/lib/staff'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { ProjectForm } from '@/components/dashboard/project-form'
 
@@ -25,7 +26,7 @@ export default async function NewProjectPage() {
         Back to projects
       </Link>
       <PageHeader title="New Project" description="Create a project to track committee work and milestones." />
-      <ProjectForm users={users} tournaments={tournaments} />
+      <ProjectForm users={toStaffUsers(users)} tournaments={tournaments} />
     </div>
   )
 }

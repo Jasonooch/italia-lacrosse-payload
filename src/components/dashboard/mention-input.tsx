@@ -1,13 +1,13 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import type { User } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
+import { staffName, type StaffUser } from '@/lib/staff'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { cn } from '@/lib/utils'
 
-export function mentionLabel(user: User): string {
-  return user.name?.trim() || [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+export function mentionLabel(user: StaffUser): string {
+  return staffName(user)
 }
 
 /** Finds an in-progress `@query` ending at the caret: an `@` at the start of
@@ -37,7 +37,7 @@ export function MentionInput({
   onChange,
   onSubmit,
 }: {
-  staff: User[]
+  staff: StaffUser[]
   placeholder?: string
   className?: string
   singleLine?: boolean
@@ -52,7 +52,7 @@ export function MentionInput({
     new Map(
       initialMentionIds
         .map((id) => staff.find((person) => person.id === id))
-        .filter((person): person is User => Boolean(person))
+        .filter((person): person is StaffUser => Boolean(person))
         .map((person) => [person.id, mentionLabel(person)]),
     ),
   )
@@ -79,7 +79,7 @@ export function MentionInput({
     setMenu(detectMention(next, event.target.selectionStart))
   }
 
-  function pick(person: User) {
+  function pick(person: StaffUser) {
     if (!menu || !ref.current) return
     const name = mentionLabel(person)
     const caret = ref.current.selectionStart

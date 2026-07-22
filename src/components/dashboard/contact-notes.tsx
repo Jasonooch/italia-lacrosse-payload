@@ -1,61 +1,54 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
-import { format, formatDistanceToNow } from 'date-fns'
+import { useState, useTransition } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
-import type { ContactNote, User } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
+import { staffName, type StaffUser } from '@/lib/staff'
 import {
   addContactNote,
   deleteContactNote,
   editContactNote,
 } from '@/app/(dashboard)/dashboard/contacts/actions'
+import { RelativeTime } from '@/components/dashboard/relative-time'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { Button } from '@/components/dashboard/ui/button'
 import { MentionInput } from '@/components/dashboard/mention-input'
 import { MentionText } from '@/lib/render-mention-text'
 
-function personName(user: User | null): string {
-  if (!user) return 'Someone'
-  return user.name?.trim() || [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+/** Slim, client-safe projection of a `contact-notes` doc — see `toNoteItem`
+ * in the contact detail page. */
+export interface NoteItem {
+  id: number
+  createdAt: string
+  body: string
+  author: StaffUser | null
+  mentions: number[]
 }
 
-function mentionIdsOf(mentions: ContactNote['mentions']): number[] {
-  return (mentions ?? []).map((mention) => (typeof mention === 'object' ? mention.id : mention))
+function ActionError({ message }: { message: string | null }) {
+  if (!message) return null
+  return <p className="mt-1 text-xs text-destructive">{message}</p>
 }
 
-/** Absolute date on first paint (matches SSR), then swaps to a relative label
- * after mount — avoids a hydration mismatch from server/client clock or TZ. */
-function RelativeTime({ iso }: { iso: string }) {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-
-  const date = new Date(iso)
-  if (!mounted) {
-    return <span className="text-xs text-muted-foreground">{format(date, 'MMM d')}</span>
-  }
-  const seconds = (Date.now() - date.getTime()) / 1000
-  const label = seconds < 60 ? 'just now' : formatDistanceToNow(date, { addSuffix: true })
-  return (
-    <span className="text-xs text-muted-foreground" title={format(date, 'PPpp')}>
-      {label}
-    </span>
-  )
-}
-
-function NoteComposer({ contactId, staff }: { contactId: number; staff: User[] }) {
+function NoteComposer({ contactId, staff }: { contactId: number; staff: StaffUser[] }) {
   const [draft, setDraft] = useState<{ body: string; mentionIds: number[] }>({
     body: '',
     mentionIds: [],
   })
   const [resetKey, setResetKey] = useState(0)
+  const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function submit() {
     if (!draft.body.trim()) return
     const { body, mentionIds } = draft
     startTransition(async () => {
-      await addContactNote(contactId, body, mentionIds)
+      const result = await addContactNote(contactId, body, mentionIds)
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      setError(null)
       setDraft({ body: '', mentionIds: [] })
       setResetKey((key) => key + 1)
     })
@@ -71,6 +64,7 @@ function NoteComposer({ contactId, staff }: { contactId: number; staff: User[] }
           className="min-h-16"
           onChange={(body, mentionIds) => setDraft({ body, mentionIds })}
         />
+        <ActionError message={error} />
       </div>
       <div className="flex justify-end px-3 pt-2 pb-3">
         <Button size="sm" onClick={submit} disabled={!draft.body.trim() || isPending}>
@@ -84,39 +78,48 @@ function NoteComposer({ contactId, staff }: { contactId: number; staff: User[] }
 function NoteCard({
   note,
   contactId,
-  currentUser,
+  currentUserId,
+  isAdmin,
   staff,
 }: {
-  note: ContactNote
+  note: NoteItem
   contactId: number
-  currentUser: User
-  staff: User[]
+  currentUserId: number
+  isAdmin: boolean
+  staff: StaffUser[]
 }) {
   const [isPending, startTransition] = useTransition()
   const [isEditing, setIsEditing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState<{ body: string; mentionIds: number[] }>({
     body: note.body,
-    mentionIds: mentionIdsOf(note.mentions),
+    mentionIds: note.mentions,
   })
-  const author = typeof note.author === 'object' ? note.author : null
-  const isAuthor = author?.id === currentUser.id
-  const canDelete = isAuthor || Boolean(currentUser.roles?.includes('admin'))
+  const isAuthor = note.author?.id === currentUserId
+  const canDelete = isAuthor || isAdmin
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteContactNote(note.id, contactId)
+      const result = await deleteContactNote(note.id, contactId)
+      setError(result.ok ? null : result.error)
     })
   }
 
   function startEdit() {
-    setEditDraft({ body: note.body, mentionIds: mentionIdsOf(note.mentions) })
+    setEditDraft({ body: note.body, mentionIds: note.mentions })
+    setError(null)
     setIsEditing(true)
   }
 
   function handleSaveEdit() {
     if (!editDraft.body.trim()) return
     startTransition(async () => {
-      await editContactNote(note.id, contactId, editDraft.body, editDraft.mentionIds)
+      const result = await editContactNote(note.id, contactId, editDraft.body, editDraft.mentionIds)
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      setError(null)
       setIsEditing(false)
     })
   }
@@ -125,11 +128,11 @@ function NoteCard({
     <div className="group rounded-lg border bg-card px-3 pt-3 pb-2 shadow-sm">
       <div className="flex items-start gap-2">
         <Avatar size="sm" className="mt-0.5">
-          <AvatarFallback>{getInitials(author?.firstName, author?.lastName)}</AvatarFallback>
+          <AvatarFallback>{getInitials(note.author?.firstName, note.author?.lastName)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <p className="text-sm">
-            <span className="font-medium">{personName(author)}</span>{' '}
+            <span className="font-medium">{staffName(note.author)}</span>{' '}
             <RelativeTime iso={note.createdAt} />
           </p>
           {isEditing ? (
@@ -137,10 +140,11 @@ function NoteCard({
               <MentionInput
                 staff={staff}
                 initialValue={note.body}
-                initialMentionIds={mentionIdsOf(note.mentions)}
+                initialMentionIds={note.mentions}
                 className="min-h-16"
                 onChange={(body, mentionIds) => setEditDraft({ body, mentionIds })}
               />
+              <ActionError message={error} />
               <div className="mt-2 flex justify-end gap-2">
                 <Button
                   size="sm"
@@ -160,9 +164,12 @@ function NoteCard({
               </div>
             </div>
           ) : (
-            <p className="mt-0.5 text-sm whitespace-pre-wrap break-words">
-              <MentionText text={note.body} staff={staff} />
-            </p>
+            <>
+              <p className="mt-0.5 text-sm whitespace-pre-wrap break-words">
+                <MentionText text={note.body} staff={staff} />
+              </p>
+              <ActionError message={error} />
+            </>
           )}
         </div>
         {!isEditing && (isAuthor || canDelete) && (
@@ -192,14 +199,16 @@ function NoteCard({
 
 export function ContactNotes({
   contactId,
-  currentUser,
+  currentUserId,
+  isAdmin,
   notes,
   staff,
 }: {
   contactId: number
-  currentUser: User
-  notes: ContactNote[]
-  staff: User[]
+  currentUserId: number
+  isAdmin: boolean
+  notes: NoteItem[]
+  staff: StaffUser[]
 }) {
   const sorted = [...notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
@@ -215,7 +224,8 @@ export function ContactNotes({
               key={note.id}
               note={note}
               contactId={contactId}
-              currentUser={currentUser}
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
               staff={staff}
             />
           ))}

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { requireDashboardUser } from '@/lib/auth'
+import { toStaffUsers } from '@/lib/staff'
 import { PageHeader } from '@/components/dashboard/page-header'
 import { ProjectForm } from '@/components/dashboard/project-form'
 import { DeleteProjectButton } from '@/components/dashboard/delete-project-button'
@@ -45,7 +46,7 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
         <PageHeader title="Edit Project" description="Update project details, owner, team, and dates." />
         <DeleteProjectButton projectId={project.id} projectTitle={project.title} />
       </div>
-      <ProjectForm project={project} users={users} tournaments={tournaments} />
+      <ProjectForm project={project} users={toStaffUsers(users)} tournaments={tournaments} />
     </div>
   )
 }

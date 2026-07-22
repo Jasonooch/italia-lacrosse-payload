@@ -46,6 +46,7 @@ function ResourceForm({
   const [title, setTitle] = useState(resource?.title ?? '')
   const [url, setUrl] = useState(resource?.url ?? '')
   const [fileName, setFileName] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
 
@@ -58,11 +59,14 @@ function ResourceForm({
     if (!title.trim() || !hasSource) return
     const formData = new FormData(event.currentTarget)
     startTransition(async () => {
-      if (resource) {
-        await editProjectResource(projectId, resource.id!, formData)
-      } else {
-        await addProjectResource(projectId, formData)
+      const result = resource
+        ? await editProjectResource(projectId, resource.id!, formData)
+        : await addProjectResource(projectId, formData)
+      if (!result.ok) {
+        setError(result.error)
+        return
       }
+      setError(null)
       onDone()
     })
   }
@@ -87,7 +91,12 @@ function ResourceForm({
           value={url}
           onChange={(event) => {
             setUrl(event.target.value)
-            if (event.target.value.trim()) setFileName(null)
+            if (event.target.value.trim()) {
+              setFileName(null)
+              // Also clear the actual input element — the FormData is built
+              // from the DOM, and a lingering file would win over the URL.
+              if (fileInputRef.current) fileInputRef.current.value = ''
+            }
           }}
           placeholder={isEdit ? 'Replace with a link' : 'https://docs.google.com/...'}
           disabled={Boolean(fileName)}
@@ -107,10 +116,13 @@ function ResourceForm({
             setFileName(name)
             if (name) setUrl('')
           }}
-          disabled={Boolean(url.trim())}
+          // In edit mode the URL field is prefilled with the existing link, so
+          // it must not lock out switching to a file; picking a file clears it.
+          disabled={!isEdit && Boolean(url.trim())}
           className="w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border file:bg-transparent file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-foreground hover:file:bg-accent"
         />
       </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="flex justify-end gap-2">
         {onCancel && (
           <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isPending}>
@@ -133,11 +145,13 @@ function ResourceForm({
 function ResourceRow({ projectId, resource }: { projectId: number; resource: Resource }) {
   const [isPending, startTransition] = useTransition()
   const [isEditing, setIsEditing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const href = resourceHref(resource)
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteProjectResource(projectId, resource.id!)
+      const result = await deleteProjectResource(projectId, resource.id!)
+      setError(result.ok ? null : result.error)
     })
   }
 
@@ -155,7 +169,8 @@ function ResourceRow({ projectId, resource }: { projectId: number; resource: Res
   }
 
   return (
-    <li className="group flex items-center gap-2.5 rounded-md border px-3 py-2.5">
+    <li className="group flex flex-wrap items-center gap-2.5 rounded-md border px-3 py-2.5">
+      {error && <p className="w-full text-xs text-destructive">{error}</p>}
       <ResourceIcon resource={resource} />
       {href ? (
         <a

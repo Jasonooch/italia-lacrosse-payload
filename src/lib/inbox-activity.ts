@@ -61,13 +61,16 @@ function parentIdOf(comment: Comment): number | null {
  * comments and activity entries are paginated together by `createdAt`;
  * replies are fetched in full for whichever top-level comments land on the
  * page, so a thread never shows up with its parent cut off. Pass the
- * previous page's `nextCursor` as `before` to load older entries. */
+ * previous page's `nextCursor` as `before` to load older entries.
+ *
+ * The cursor is inclusive (`less_than_equal`) so items sharing the boundary
+ * timestamp are never skipped; the client deduplicates the overlap by id. */
 export async function fetchGlobalActivityPage(
   payload: Payload,
   user: User,
   before?: string | null,
 ): Promise<InboxFeedPage> {
-  const cursorFilter = before ? [{ createdAt: { less_than: before } }] : []
+  const cursorFilter = before ? [{ createdAt: { less_than_equal: before } }] : []
 
   const [{ docs: topComments }, { docs: activityDocs }] = await Promise.all([
     payload.find({

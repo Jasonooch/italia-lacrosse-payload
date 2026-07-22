@@ -2,48 +2,18 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { format, formatDistanceToNow } from 'date-fns'
-import {
-  CheckCircle2,
-  CircleDot,
-  Flag,
-  Package,
-  Paperclip,
-  Users,
-  type LucideIcon,
-} from 'lucide-react'
-import type { ActivityLog } from '@/payload-types'
 import { loadMoreGlobalActivity } from '@/app/(dashboard)/dashboard/inbox/actions'
-import type { InboxFeedPage } from '@/lib/inbox-activity'
+import type { InboxFeedItem, InboxFeedPage } from '@/lib/inbox-activity'
+import { ActivityTypeIcon } from '@/components/dashboard/activity-icons'
+import { RelativeTime } from '@/components/dashboard/relative-time'
 import { Button } from '@/components/dashboard/ui/button'
 
-const ACTIVITY_ICONS: Record<ActivityLog['type'], { Icon: LucideIcon; className: string }> = {
-  'project-created': { Icon: Package, className: 'text-orange-500' },
-  'status-changed': { Icon: CircleDot, className: 'text-blue-500' },
-  'team-changed': { Icon: Users, className: 'text-purple-500' },
-  'milestone-added': { Icon: Flag, className: 'text-muted-foreground' },
-  'milestone-completed': { Icon: CheckCircle2, className: 'text-green-500' },
-  'milestone-updated': { Icon: Flag, className: 'text-muted-foreground' },
-  'resource-added': { Icon: Paperclip, className: 'text-muted-foreground' },
-}
-
-function relativeTime(iso: string) {
-  const date = new Date(iso)
-  const seconds = (Date.now() - date.getTime()) / 1000
-  return seconds < 60 ? 'just now' : formatDistanceToNow(date, { addSuffix: true })
-}
-
 function TimeLabel({ iso }: { iso: string }) {
-  return (
-    <span className="shrink-0 text-xs text-muted-foreground" title={format(new Date(iso), 'PPpp')}>
-      {relativeTime(iso)}
-    </span>
-  )
+  return <RelativeTime iso={iso} className="shrink-0 text-xs text-muted-foreground" />
 }
 
-function ActivityTypeIcon({ type }: { type: ActivityLog['type'] }) {
-  const { Icon, className } = ACTIVITY_ICONS[type]
-  return <Icon className={'size-4 shrink-0 ' + className} />
+function itemKey(item: InboxFeedItem): string {
+  return `${item.kind}-${item.id}`
 }
 
 export function InboxActivityFeed({ initial }: { initial: InboxFeedPage }) {
@@ -55,9 +25,34 @@ export function InboxActivityFeed({ initial }: { initial: InboxFeedPage }) {
     if (!cursor) return
     startTransition(async () => {
       const next = await loadMoreGlobalActivity(cursor)
-      setItems((prev) => [...prev, ...next.items])
-      setCursor(next.nextCursor)
+      // The cursor is inclusive, so the boundary item comes back again — drop
+      // anything already shown before appending.
+      const seen = new Set(items.map(itemKey))
+      const newItems = next.items.filter((item) => !seen.has(itemKey(item)))
+      setItems((prev) => [...prev, ...newItems])
+      // If a page produced nothing new and the cursor didn't advance, we're at
+      // the end — stop rather than looping on the same timestamp.
+      setCursor(next.nextCursor === cursor && newItems.length === 0 ? null : next.nextCursor)
     })
+  }
+
+  // Legacy entries whose project was deleted before cascade-cleanup existed
+  // have no project to link to — render them inert instead of a dead link.
+  function FeedRow({
+    projectId,
+    className,
+    children,
+  }: {
+    projectId: number
+    className: string
+    children: React.ReactNode
+  }) {
+    if (!projectId) return <div className={className}>{children}</div>
+    return (
+      <Link href={`/dashboard/projects/${projectId}?tab=activity`} className={className}>
+        {children}
+      </Link>
+    )
   }
 
   if (items.length === 0) {
@@ -73,9 +68,9 @@ export function InboxActivityFeed({ initial }: { initial: InboxFeedPage }) {
       <div className="divide-y rounded-lg border">
         {items.map((item) =>
           item.kind === 'comment' ? (
-            <Link
+            <FeedRow
               key={`comment-${item.id}`}
-              href={`/dashboard/projects/${item.projectId}?tab=activity`}
+              projectId={item.projectId}
               className="block px-4 py-3 transition-colors hover:bg-accent/50"
             >
               <p className="text-sm">
@@ -91,11 +86,11 @@ export function InboxActivityFeed({ initial }: { initial: InboxFeedPage }) {
                   </span>
                 )}
               </div>
-            </Link>
+            </FeedRow>
           ) : (
-            <Link
+            <FeedRow
               key={`activity-${item.id}`}
-              href={`/dashboard/projects/${item.projectId}?tab=activity`}
+              projectId={item.projectId}
               className="flex items-center gap-2 px-4 py-3 text-sm transition-colors hover:bg-accent/50"
             >
               <ActivityTypeIcon type={item.type} />
@@ -104,7 +99,7 @@ export function InboxActivityFeed({ initial }: { initial: InboxFeedPage }) {
                 <span className="text-muted-foreground">in {item.projectTitle}</span>
               </span>
               <TimeLabel iso={item.createdAt} />
-            </Link>
+            </FeedRow>
           ),
         )}
       </div>

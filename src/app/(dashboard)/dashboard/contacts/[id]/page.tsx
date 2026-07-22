@@ -3,7 +3,10 @@ import { getPayload } from 'payload'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import type { ContactNote } from '@/payload-types'
 import { requireDashboardUser } from '@/lib/auth'
+import { toStaffUser, toStaffUsers } from '@/lib/staff'
+import type { NoteItem } from '@/components/dashboard/contact-notes'
 import { Badge } from '@/components/dashboard/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card'
 import { CopyEmailButton } from '@/components/dashboard/copy-email-button'
@@ -29,6 +32,18 @@ function Field({ label, value }: { label: string; value?: React.ReactNode }) {
       <p className="mt-0.5 break-words text-sm">{value}</p>
     </div>
   )
+}
+
+function toNoteItem(note: ContactNote): NoteItem {
+  return {
+    id: note.id,
+    createdAt: note.createdAt,
+    body: note.body,
+    author: note.author && typeof note.author === 'object' ? toStaffUser(note.author) : null,
+    mentions: (note.mentions ?? []).map((mention) =>
+      typeof mention === 'object' ? mention.id : mention,
+    ),
+  }
 }
 
 function formatDate(value?: string | null) {
@@ -269,7 +284,13 @@ export default async function ContactDetailPage({
 
       <div className="mt-6">
         <h2 className="mb-3 text-lg font-semibold tracking-tight">Notes</h2>
-        <ContactNotes contactId={contact.id} currentUser={user} notes={notes} staff={staff} />
+        <ContactNotes
+          contactId={contact.id}
+          currentUserId={user.id}
+          isAdmin={Boolean(user.roles?.includes('admin'))}
+          notes={notes.map(toNoteItem)}
+          staff={toStaffUsers(staff)}
+        />
       </div>
 
       <p className="mt-6 text-xs text-muted-foreground">

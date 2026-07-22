@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
-import type { Team, User } from '@/payload-types'
+import type { Team } from '@/payload-types'
+import { staffName, type StaffUser } from '@/lib/staff'
 import { getInitials } from '@/lib/contact-display'
 import { EVENT_TYPE_LABELS, type EventType } from '@/lib/calendar-display'
 import type { EventFormInput } from '@/app/(dashboard)/dashboard/calendar/actions'
@@ -34,8 +35,8 @@ const EVENT_TYPES = Object.keys(EVENT_TYPE_LABELS).filter((type) => type !== 'to
   'tournament'
 >[]
 
-export function staffLabel(person: User): string {
-  return person.name?.trim() || [person.firstName, person.lastName].filter(Boolean).join(' ') || person.email
+export function staffLabel(person: StaffUser): string {
+  return staffName(person)
 }
 
 function StaffPicker({
@@ -43,7 +44,7 @@ function StaffPicker({
   selected,
   onChange,
 }: {
-  staff: User[]
+  staff: StaffUser[]
   selected: number[]
   onChange: (ids: number[]) => void
 }) {
@@ -147,7 +148,7 @@ export function CalendarEventForm({
   onSubmit,
 }: {
   teams: Team[]
-  staff: User[]
+  staff: StaffUser[]
   initial?: {
     title: string
     eventType: Exclude<EventType, 'tournament'>

@@ -3,7 +3,8 @@
 import { useMemo, useState, useTransition } from 'react'
 import { addMonths, format, getDaysInMonth, isSameMonth, startOfMonth, subMonths } from 'date-fns'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
-import type { Event, Team, Tournament, User } from '@/payload-types'
+import type { Event, Team, Tournament } from '@/payload-types'
+import type { StaffUser } from '@/lib/staff'
 import { toCalendarItems, type CalendarItem, type EventType } from '@/lib/calendar-display'
 import { createEvent, type EventFormInput } from '@/app/(dashboard)/dashboard/calendar/actions'
 import { Button } from '@/components/dashboard/ui/button'
@@ -22,7 +23,7 @@ import { CalendarMonthGrid } from '@/components/dashboard/calendar-month-grid'
 
 const ALL_TYPES: EventType[] = ['meeting', 'tryout', 'training-camp', 'other', 'tournament']
 
-function NewEventButton({ teams, staff }: { teams: Team[]; staff: User[] }) {
+function NewEventButton({ teams, staff }: { teams: Team[]; staff: StaffUser[] }) {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -70,7 +71,7 @@ export function CalendarView({
   events: Event[]
   tournaments: Tournament[]
   teams: Team[]
-  staff: User[]
+  staff: StaffUser[]
 }) {
   const [currentMonth, setCurrentMonth] = useState(() => startOfMonth(new Date()))
   const [activeTypes, setActiveTypes] = useState<Set<EventType>>(() => new Set(ALL_TYPES))

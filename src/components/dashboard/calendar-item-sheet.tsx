@@ -3,7 +3,8 @@
 import { useEffect, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import type { Team, User } from '@/payload-types'
+import type { Team } from '@/payload-types'
+import type { StaffUser } from '@/lib/staff'
 import type { CalendarItem } from '@/lib/calendar-display'
 import { EVENT_TYPE_LABELS, EVENT_TYPE_PILL_STYLES } from '@/lib/calendar-display'
 import { deleteEvent, updateEvent, type EventFormInput } from '@/app/(dashboard)/dashboard/calendar/actions'
@@ -50,7 +51,7 @@ export function CalendarItemSheet({
 }: {
   item: CalendarItem | null
   teams: Team[]
-  staff: User[]
+  staff: StaffUser[]
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
@@ -73,7 +74,7 @@ export function CalendarItemSheet({
   const teamName = item.team ? (teams.find((t) => t.id === item.team)?.name ?? null) : null
   const assignedStaffNames = item.assignedStaff
     .map((id) => staff.find((person) => person.id === id))
-    .filter((person): person is User => Boolean(person))
+    .filter((person): person is StaffUser => Boolean(person))
     .map(staffLabel)
     .join(', ')
 

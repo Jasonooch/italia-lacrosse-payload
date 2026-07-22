@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../access/authenticated'
+import { ownRowOrAdmin } from '../access/ownRowOrAdmin'
 
 // Staff comments on a project's Activity tab. Single-level threading: a comment
 // with a `parent` is a reply; top-level comments have none. Written only by the
@@ -17,9 +18,25 @@ export const Comments: CollectionConfig = {
   },
   access: {
     create: authenticated,
-    delete: authenticated,
+    // Row-level: only the author (or an admin) may change or remove a comment.
+    // The server actions check this too, but the REST/GraphQL API goes straight
+    // through these access functions, so it must be enforced here as well.
+    delete: ownRowOrAdmin('author'),
     read: authenticated,
-    update: authenticated,
+    update: ownRowOrAdmin('author'),
+  },
+  hooks: {
+    beforeChange: [
+      ({ data, req, operation }) => {
+        // Non-admins always write as themselves — prevents forging `author`
+        // via the REST API on create, or reassigning it on update.
+        if (req.user && !req.user.roles?.includes('admin')) {
+          if (operation === 'create') data.author = req.user.id
+          else delete data.author
+        }
+        return data
+      },
+    ],
   },
   fields: [
     {

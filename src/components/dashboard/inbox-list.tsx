@@ -2,10 +2,10 @@
 
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { format, formatDistanceToNow } from 'date-fns'
 import { AtSign, Bell, MessageSquare, type LucideIcon } from 'lucide-react'
 import type { Notification } from '@/payload-types'
 import { markAllNotificationsRead, markNotificationRead } from '@/app/(dashboard)/dashboard/inbox/actions'
+import { RelativeTime } from '@/components/dashboard/relative-time'
 import { Button } from '@/components/dashboard/ui/button'
 
 export interface InboxItem {
@@ -25,12 +25,6 @@ const TYPE_ICONS: Record<Notification['type'], { Icon: LucideIcon; className: st
   mention: { Icon: AtSign, className: 'text-blue-500' },
   comment: { Icon: MessageSquare, className: 'text-purple-500' },
   'project-activity': { Icon: Bell, className: 'text-muted-foreground' },
-}
-
-function relativeTime(iso: string) {
-  const date = new Date(iso)
-  const seconds = (Date.now() - date.getTime()) / 1000
-  return seconds < 60 ? 'just now' : formatDistanceToNow(date, { addSuffix: true })
 }
 
 export function InboxList({ items }: { items: InboxItem[] }) {
@@ -96,12 +90,7 @@ export function InboxList({ items }: { items: InboxItem[] }) {
                   )}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span
-                    className="text-xs text-muted-foreground"
-                    title={format(new Date(item.createdAt), 'PPpp')}
-                  >
-                    {relativeTime(item.createdAt)}
-                  </span>
+                  <RelativeTime iso={item.createdAt} />
                   {!item.read && <span className="size-2 shrink-0 rounded-full bg-primary" />}
                 </div>
               </button>

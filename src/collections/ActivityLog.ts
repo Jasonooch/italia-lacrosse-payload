@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
+import { adminOnly } from '../access/adminOnly'
 import { authenticated } from '../access/authenticated'
 
 // System-generated feed of what changed on a project (status, team, milestones,
@@ -15,10 +16,24 @@ export const ActivityLog: CollectionConfig = {
     group: 'Admin',
   },
   access: {
+    // Append-only from the dashboard's perspective: staff actions create
+    // entries (via `logActivity`), everyone can read the feed, but rewriting
+    // history is admin-only.
     create: authenticated,
-    delete: authenticated,
+    delete: adminOnly,
     read: authenticated,
-    update: authenticated,
+    update: adminOnly,
+  },
+  hooks: {
+    beforeChange: [
+      ({ data, req, operation }) => {
+        // Non-admins always log as themselves — prevents forging `actor`.
+        if (operation === 'create' && req.user && !req.user.roles?.includes('admin')) {
+          data.actor = req.user.id
+        }
+        return data
+      },
+    ],
   },
   fields: [
     {

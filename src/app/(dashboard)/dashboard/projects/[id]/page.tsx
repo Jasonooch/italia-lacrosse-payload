@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Pencil } from 'lucide-react'
 import type { Tournament, User } from '@/payload-types'
 import { requireDashboardUser } from '@/lib/auth'
+import { toStaffUser, toStaffUsers } from '@/lib/staff'
 import { fetchProjectActivityPage } from '@/lib/activity-feed'
 import { ProjectStatusControl } from '@/components/dashboard/project-status-control'
 import { ProjectDetailsCard, ProjectProgressCard } from '@/components/dashboard/project-sidebar'
@@ -42,7 +43,7 @@ export default async function ProjectDetailPage({
     notFound()
   }
 
-  const { docs: allUsers } = await payload.find({
+  const { docs: allUserDocs } = await payload.find({
     collection: 'users',
     user,
     overrideAccess: false,
@@ -52,13 +53,25 @@ export default async function ProjectDetailPage({
 
   const initialActivityPage = await fetchProjectActivityPage(payload, user, project.id)
 
-  const owner = project.owner && typeof project.owner === 'object' ? (project.owner as User) : null
-  const team = (project.team ?? []).filter((member): member is User => typeof member === 'object')
+  // Everything handed to client components carries StaffUser, not full user
+  // docs — see src/lib/staff.ts.
+  const allUsers = toStaffUsers(allUserDocs)
+  const owner =
+    project.owner && typeof project.owner === 'object' ? toStaffUser(project.owner as User) : null
+  const team = (project.team ?? [])
+    .filter((member): member is User => typeof member === 'object')
+    .map(toStaffUser)
   const tournament =
     project.tournament && typeof project.tournament === 'object'
       ? (project.tournament as Tournament)
       : null
-  const milestones = project.milestones ?? []
+  const milestones = (project.milestones ?? []).map((milestone) => ({
+    ...milestone,
+    assignee:
+      milestone.assignee && typeof milestone.assignee === 'object'
+        ? toStaffUser(milestone.assignee)
+        : (milestone.assignee ?? null),
+  }))
 
   return (
     <>
@@ -112,7 +125,8 @@ export default async function ProjectDetailPage({
             <TabsContent value="activity">
               <ProjectActivity
                 projectId={project.id}
-                currentUser={user}
+                currentUserId={user.id}
+                isAdmin={Boolean(user.roles?.includes('admin'))}
                 initialComments={initialActivityPage.comments}
                 initialActivity={initialActivityPage.activity}
                 initialCursor={initialActivityPage.nextCursor}

@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { Plus, X } from 'lucide-react'
-import type { User } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
+import { staffName, type StaffUser } from '@/lib/staff'
 import { addTeamMember, removeTeamMember } from '@/app/(dashboard)/dashboard/projects/actions'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { Button } from '@/components/dashboard/ui/button'
@@ -17,11 +17,12 @@ export function ProjectTeamCard({
   allUsers,
 }: {
   projectId: number
-  owner: User | null
-  team: User[]
-  allUsers: User[]
+  owner: StaffUser | null
+  team: StaffUser[]
+  allUsers: StaffUser[]
 }) {
   const [open, setOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const teamWithoutOwner = team.filter((member) => member.id !== owner?.id)
@@ -30,14 +31,16 @@ export function ProjectTeamCard({
 
   function handleAdd(userId: number) {
     startTransition(async () => {
-      await addTeamMember(projectId, userId)
-      setOpen(false)
+      const result = await addTeamMember(projectId, userId)
+      setError(result.ok ? null : result.error)
+      if (result.ok) setOpen(false)
     })
   }
 
   function handleRemove(userId: number) {
     startTransition(async () => {
-      await removeTeamMember(projectId, userId)
+      const result = await removeTeamMember(projectId, userId)
+      setError(result.ok ? null : result.error)
     })
   }
 
@@ -74,7 +77,7 @@ export function ProjectTeamCard({
                     <Avatar size="sm">
                       <AvatarFallback>{getInitials(candidate.firstName, candidate.lastName)}</AvatarFallback>
                     </Avatar>
-                    <span className="min-w-0 truncate">{candidate.name || candidate.email}</span>
+                    <span className="min-w-0 truncate">{staffName(candidate)}</span>
                   </button>
                 ))
               )}
@@ -83,13 +86,14 @@ export function ProjectTeamCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {error && <p className="text-xs text-destructive">{error}</p>}
         {owner && (
           <div className="flex items-center gap-2">
             <Avatar size="sm">
               <AvatarFallback>{getInitials(owner.firstName, owner.lastName)}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
-              <p className="truncate text-sm">{owner.name || owner.email}</p>
+              <p className="truncate text-sm">{staffName(owner)}</p>
               <p className="truncate text-xs text-muted-foreground">Owner</p>
             </div>
           </div>
@@ -99,11 +103,11 @@ export function ProjectTeamCard({
             <Avatar size="sm">
               <AvatarFallback>{getInitials(member.firstName, member.lastName)}</AvatarFallback>
             </Avatar>
-            <p className="min-w-0 flex-1 truncate text-sm">{member.name || member.email}</p>
+            <p className="min-w-0 flex-1 truncate text-sm">{staffName(member)}</p>
             <Button
               variant="ghost"
               size="icon-xs"
-              aria-label={`Remove ${member.name || member.email}`}
+              aria-label={`Remove ${staffName(member)}`}
               onClick={() => handleRemove(member.id)}
               disabled={isPending}
               className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"

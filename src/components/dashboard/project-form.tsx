@@ -3,8 +3,9 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { X } from 'lucide-react'
-import type { Project, Tournament, User } from '@/payload-types'
+import type { Project, Tournament } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
+import { staffName, type StaffUser } from '@/lib/staff'
 import { PROJECT_STATUS_LABELS, type ProjectStatus } from '@/lib/project-display'
 import {
   createProject,
@@ -41,7 +42,7 @@ export function ProjectForm({
   tournaments,
 }: {
   project?: Project
-  users: User[]
+  users: StaffUser[]
   tournaments: Tournament[]
 }) {
   const isEdit = Boolean(project)
@@ -151,7 +152,7 @@ export function ProjectForm({
             <SelectItem value={NONE}>Unassigned</SelectItem>
             {users.map((user) => (
               <SelectItem key={user.id} value={String(user.id)}>
-                {user.name || user.email}
+                {staffName(user)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -184,18 +185,18 @@ export function ProjectForm({
           {team.length === 0 && <p className="text-sm text-muted-foreground">No team members added.</p>}
           {team
             .map((id) => users.find((u) => u.id === id))
-            .filter((u): u is User => Boolean(u))
+            .filter((u): u is StaffUser => Boolean(u))
             .map((member) => (
               <div key={member.id} className="flex items-center gap-2 rounded-md border px-2 py-1.5">
                 <Avatar size="sm">
                   <AvatarFallback>{getInitials(member.firstName, member.lastName)}</AvatarFallback>
                 </Avatar>
-                <span className="min-w-0 flex-1 truncate text-sm">{member.name || member.email}</span>
+                <span className="min-w-0 flex-1 truncate text-sm">{staffName(member)}</span>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-xs"
-                  aria-label={`Remove ${member.name || member.email}`}
+                  aria-label={`Remove ${staffName(member)}`}
                   onClick={() => setTeam((prev) => prev.filter((id) => id !== member.id))}
                 >
                   <X className="size-3.5" />
@@ -210,7 +211,7 @@ export function ProjectForm({
               <SelectContent>
                 {addableUsers.map((user) => (
                   <SelectItem key={user.id} value={String(user.id)}>
-                    {user.name || user.email}
+                    {staffName(user)}
                   </SelectItem>
                 ))}
               </SelectContent>

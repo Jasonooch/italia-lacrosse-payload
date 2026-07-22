@@ -1,4 +1,4 @@
-import type { User } from '@/payload-types'
+import type { StaffUser } from '@/lib/staff'
 import { mentionLabel } from '@/components/dashboard/mention-input'
 
 function escapeRegExp(value: string): string {
@@ -13,7 +13,7 @@ type MatchRange = { start: number; end: number; render: (key: number) => React.R
  * staff list) highlighted and raw `http(s)://` URLs turned into clickable
  * links. Display-only — mention matching is by name substring, not stored
  * offsets, so it re-derives highlights from the plain text on every render. */
-export function MentionText({ text, staff }: { text: string; staff: User[] }) {
+export function MentionText({ text, staff }: { text: string; staff: StaffUser[] }) {
   const names = staff
     .map(mentionLabel)
     .filter(Boolean)

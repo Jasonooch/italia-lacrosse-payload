@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../access/authenticated'
+import { ownRowOrAdmin } from '../access/ownRowOrAdmin'
 
 // Per-recipient inbox items. One row is created for each person who should hear
 // about something: an @-mention, a new comment on a project they're on, or a
@@ -16,10 +17,31 @@ export const Notifications: CollectionConfig = {
     group: 'Admin',
   },
   access: {
+    // Anyone signed in can create (the `notify` helper writes rows for other
+    // recipients as the acting user), but a notification is otherwise private
+    // to its recipient: nobody else can read it, mark it read, or delete it.
     create: authenticated,
-    delete: authenticated,
-    read: authenticated,
-    update: authenticated,
+    delete: ownRowOrAdmin('recipient'),
+    read: ownRowOrAdmin('recipient'),
+    update: ownRowOrAdmin('recipient'),
+  },
+  hooks: {
+    beforeChange: [
+      ({ data, req, operation }) => {
+        if (req.user && !req.user.roles?.includes('admin')) {
+          // The actor is always whoever is making the request — prevents
+          // spoofing "X mentioned you" rows via the REST API.
+          if (operation === 'create') data.actor = req.user.id
+          // A recipient may only flip their own row's `read` flag, not hand
+          // the row (or its attribution) to someone else.
+          else {
+            delete data.recipient
+            delete data.actor
+          }
+        }
+        return data
+      },
+    ],
   },
   fields: [
     {

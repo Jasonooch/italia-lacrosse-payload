@@ -19,8 +19,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { Project, User } from '@/payload-types'
+import type { Project } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
+import { staffName, type StaffUser } from '@/lib/staff'
 import {
   MILESTONE_STATUS_LABELS,
   MILESTONE_STATUS_PILL_STYLES,
@@ -47,22 +48,31 @@ import {
   SelectValue,
 } from '@/components/dashboard/ui/select'
 
-type Milestone = NonNullable<Project['milestones']>[number]
+/** A project milestone with its populated assignee slimmed to `StaffUser` —
+ * the shape the project detail page maps to before crossing to the client. */
+export type MilestoneItem = Omit<NonNullable<Project['milestones']>[number], 'assignee'> & {
+  assignee?: number | StaffUser | null
+}
 
 const UNASSIGNED = 'unassigned'
 
-function assigneeId(assignee: Milestone['assignee']): number | null {
+function assigneeId(assignee: MilestoneItem['assignee']): number | null {
   if (assignee == null) return null
   return typeof assignee === 'object' ? assignee.id : assignee
 }
 
-function AssigneeAvatar({ assignee }: { assignee: Milestone['assignee'] }) {
+function AssigneeAvatar({ assignee }: { assignee: MilestoneItem['assignee'] }) {
   if (!assignee || typeof assignee === 'number') return null
   return (
-    <Avatar size="sm" title={assignee.name || assignee.email}>
+    <Avatar size="sm" title={staffName(assignee)}>
       <AvatarFallback>{getInitials(assignee.firstName, assignee.lastName)}</AvatarFallback>
     </Avatar>
   )
+}
+
+function ActionError({ message }: { message: string | null }) {
+  if (!message) return null
+  return <p className="mt-2 text-xs text-destructive">{message}</p>
 }
 
 /** Shared title / due date / assignee fields for creating and editing a
@@ -74,7 +84,7 @@ function MilestoneForm({
   isPending,
   onSubmit,
 }: {
-  users: User[]
+  users: StaffUser[]
   initial?: { title: string; dueDate: string; assignee: string }
   submitLabel: string
   isPending: boolean
@@ -118,7 +128,7 @@ function MilestoneForm({
             <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
             {users.map((user) => (
               <SelectItem key={user.id} value={String(user.id)}>
-                {user.name || user.email}
+                {staffName(user)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -141,11 +151,12 @@ function MilestoneActions({
   users,
 }: {
   projectId: number
-  milestone: Milestone
-  users: User[]
+  milestone: MilestoneItem
+  users: StaffUser[]
 }) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<ActionMode>('menu')
+  const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function close() {
@@ -155,19 +166,30 @@ function MilestoneActions({
   // Reset back to the menu view whenever the popover reopens.
   function handleOpenChange(next: boolean) {
     setOpen(next)
-    if (next) setMode('menu')
+    if (next) {
+      setMode('menu')
+      setError(null)
+    }
   }
 
   function handleEdit(values: MilestoneInput) {
     startTransition(async () => {
-      await updateMilestone(projectId, milestone.id!, values)
+      const result = await updateMilestone(projectId, milestone.id!, values)
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
       close()
     })
   }
 
   function handleDelete() {
     startTransition(async () => {
-      await deleteMilestone(projectId, milestone.id!)
+      const result = await deleteMilestone(projectId, milestone.id!)
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
       close()
     })
   }
@@ -220,6 +242,7 @@ function MilestoneActions({
               }}
               onSubmit={handleEdit}
             />
+            <ActionError message={error} />
           </>
         )}
 
@@ -237,6 +260,7 @@ function MilestoneActions({
                 Delete
               </Button>
             </div>
+            <ActionError message={error} />
           </>
         )}
       </PopoverContent>
@@ -250,8 +274,8 @@ function SortableMilestoneRow({
   users,
 }: {
   projectId: number
-  milestone: Milestone
-  users: User[]
+  milestone: MilestoneItem
+  users: StaffUser[]
 }) {
   const [isPending, startTransition] = useTransition()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -261,6 +285,8 @@ function SortableMilestoneRow({
 
   function handleStatusChange(status: string) {
     startTransition(async () => {
+      // On failure the revalidated server state simply re-renders the old
+      // status; nothing local to roll back.
       await updateMilestoneStatus(projectId, milestone.id!, status as MilestoneStatus)
     })
   }
@@ -327,13 +353,19 @@ function SortableMilestoneRow({
   )
 }
 
-export function NewMilestoneButton({ projectId, users }: { projectId: number; users: User[] }) {
+export function NewMilestoneButton({ projectId, users }: { projectId: number; users: StaffUser[] }) {
   const [open, setOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function handleSubmit(values: MilestoneInput) {
     startTransition(async () => {
-      await addMilestone(projectId, values)
+      const result = await addMilestone(projectId, values)
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      setError(null)
       setOpen(false)
     })
   }
@@ -350,13 +382,16 @@ export function NewMilestoneButton({ projectId, users }: { projectId: number; us
         <p className="mb-3 text-sm font-semibold">New Milestone</p>
         {/* Remount on open so fields reset between adds. */}
         {open && (
-          <MilestoneForm
-            key="new"
-            users={users}
-            submitLabel="Add Milestone"
-            isPending={isPending}
-            onSubmit={handleSubmit}
-          />
+          <>
+            <MilestoneForm
+              key="new"
+              users={users}
+              submitLabel="Add Milestone"
+              isPending={isPending}
+              onSubmit={handleSubmit}
+            />
+            <ActionError message={error} />
+          </>
         )}
       </PopoverContent>
     </Popover>
@@ -379,10 +414,11 @@ export function ProjectMilestones({
   users,
 }: {
   projectId: number
-  milestones: Milestone[]
-  users: User[]
+  milestones: MilestoneItem[]
+  users: StaffUser[]
 }) {
   const [items, setItems] = useState(milestones)
+  const [reorderError, setReorderError] = useState<string | null>(null)
   const [, startTransition] = useTransition()
 
   // Re-sync local order whenever the server sends a different set/content of
@@ -411,10 +447,17 @@ export function ProjectMilestones({
     const next = arrayMove(items, oldIndex, newIndex)
     setItems(next)
     startTransition(async () => {
-      await reorderMilestones(
+      const result = await reorderMilestones(
         projectId,
         next.map((m) => m.id!),
       )
+      if (!result.ok) {
+        // Roll the optimistic order back to what the server last sent.
+        setItems(milestones)
+        setReorderError(result.error)
+      } else {
+        setReorderError(null)
+      }
     })
   }
 
@@ -423,6 +466,7 @@ export function ProjectMilestones({
   return (
     <div>
       <MilestonesSummary completed={completed} total={items.length} />
+      <ActionError message={reorderError} />
       <div className="rounded-lg border">
         {items.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">No milestones yet.</p>

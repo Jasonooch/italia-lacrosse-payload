@@ -41,8 +41,10 @@ export async function logActivity(
         summary,
       })
     }
-  } catch {
-    // Intentionally ignored — see doc comment.
+  } catch (error) {
+    // Swallowed by design (see doc comment), but logged so failures are
+    // diagnosable in the Workers logs.
+    payload.logger.error({ err: error, projectId, type }, 'logActivity: failed')
   }
 }
 

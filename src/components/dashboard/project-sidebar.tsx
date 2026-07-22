@@ -1,13 +1,13 @@
-import type { Project, Tournament, User } from '@/payload-types'
+import type { Project, Tournament } from '@/payload-types'
 import { getInitials } from '@/lib/contact-display'
+import { staffName, type StaffUser } from '@/lib/staff'
+import type { MilestoneItem } from '@/components/dashboard/project-milestones'
 import { MILESTONE_STATUS_DOT_STYLES, formatProjectDate } from '@/lib/project-display'
 import { StatusBadge } from '@/components/dashboard/project-status-badge'
 import { Avatar, AvatarFallback } from '@/components/dashboard/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/dashboard/ui/card'
 
-type Milestone = NonNullable<Project['milestones']>[number]
-
-export function ProjectProgressCard({ milestones }: { milestones: Milestone[] }) {
+export function ProjectProgressCard({ milestones }: { milestones: MilestoneItem[] }) {
   const completed = milestones.filter((milestone) => milestone.status === 'completed').length
   const percent = milestones.length === 0 ? 0 : Math.round((completed / milestones.length) * 100)
 
@@ -47,7 +47,7 @@ export function ProjectDetailsCard({
 }: {
   project: Project
   tournament: Tournament | null
-  owner: User | null
+  owner: StaffUser | null
 }) {
   return (
     <Card>
@@ -74,7 +74,7 @@ export function ProjectDetailsCard({
               <Avatar size="sm">
                 <AvatarFallback>{getInitials(owner.firstName, owner.lastName)}</AvatarFallback>
               </Avatar>
-              <span className="truncate">{owner.name || owner.email}</span>
+              <span className="truncate">{staffName(owner)}</span>
             </div>
           ) : (
             <span>—</span>
